@@ -361,12 +361,13 @@
   </header>
 
   <input type="file" id="csvFileInput"   accept=".csv" style="display:none;">
+  <input type="file" id="csvDiarioInput" accept=".csv" style="display:none;">
   <!--__PMG_PRELOAD_SLOT__-->
 
   <div class="grid-wrapper" id="__adminBlock__">
     <!-- Instrução -->
     <p style="text-align:center;font-family:'Montserrat',sans-serif;font-size:13px;font-weight:600;color:var(--text-mid);margin-bottom:28px;line-height:1.7;">
-      Importe o CSV base e clique em <strong>💾 Salvar Painel</strong> para distribuir aos vendedores. As vendas são atualizadas automaticamente pela aba <strong>vendas_v1</strong> do Google Sheets.
+      Importe o CSV base, o Venda Diária e clique em <strong>💾 Salvar Painel</strong> para distribuir aos vendedores
     </p>
 
     <!-- Botões de ação centralizados -->
@@ -375,7 +376,12 @@
       <button id="btnImportCSV" style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--blue-mid),var(--blue-dark));border:none;border-radius:8px;padding:13px 24px;font-family:'Montserrat',sans-serif;font-weight:700;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:#fff;cursor:pointer;box-shadow:0 4px 14px rgba(26,63,168,.3);transition:transform .15s,box-shadow .2s;">
         <span style="font-size:16px;">⬆</span> Importar CSV
       </button>
-<button id="btnImportSheets" style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#0f9d58,#0b7a44);border:none;border-radius:8px;padding:13px 24px;font-family:'Montserrat',sans-serif;font-weight:700;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:#fff;cursor:pointer;box-shadow:0 4px 14px rgba(15,157,88,.3);transition:transform .15s,box-shadow .2s;">
+
+      <button id="btnImportDiario" style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#2271c5,#0f4a90);border:none;border-radius:8px;padding:13px 24px;font-family:'Montserrat',sans-serif;font-weight:700;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:#fff;cursor:pointer;box-shadow:0 4px 14px rgba(26,63,168,.3);transition:transform .15s,box-shadow .2s;">
+        <span style="font-size:16px;">📈</span> Venda Diária
+      </button>
+
+      <button id="btnImportSheets" style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#0f9d58,#0b7a44);border:none;border-radius:8px;padding:13px 24px;font-family:'Montserrat',sans-serif;font-weight:700;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:#fff;cursor:pointer;box-shadow:0 4px 14px rgba(15,157,88,.3);transition:transform .15s,box-shadow .2s;">
         <span style="font-size:16px;">📊</span> Importar G.Sheets
       </button>
 
@@ -708,7 +714,9 @@ function activatePainelMode() {
 
   // 4. Atualiza botões de status
   const b1 = document.getElementById('btnImportCSV');
-  
+  const b2 = document.getElementById('btnImportDiario');
+  if (b1) { b1.innerHTML = `<span style="font-size:16px;">✅</span> Base ${window.__PMG_DATE__ || ''}`; b1.style.background = 'linear-gradient(135deg,#109150,#0c7a44)'; }
+  if (b2) { b2.innerHTML = `<span style="font-size:16px;">✅</span> Diário ${window.__PMG_DATE__ || ''}`; b2.style.background = 'linear-gradient(135deg,#109150,#0c7a44)'; }
   // Ajusta botão G.Sheets se file://
   const b3 = document.getElementById('btnImportSheets');
   if (b3 && (location.protocol === 'file:' || location.origin === 'null')) {
@@ -723,6 +731,10 @@ function activatePainelMode() {
 // ─────────────────────────────────────────────
 // CSV UPLOAD & PARSE
 // ─────────────────────────────────────────────
+document.getElementById('btnImportDiario').addEventListener('click', () => {
+  document.getElementById('csvDiarioInput').click();
+});
+
 // ── CSV 3 ÚLTIMAS COMPRAS ──────────────────────────────────
 document.getElementById('btnImport3Ult').addEventListener('click', () => {
   const inp = document.createElement('input');
@@ -1137,7 +1149,14 @@ function _applyCadastroToCsvData() {
   console.log('[D] cadastroData[56524]=', cadastroData['56524']);
 }
 
-
+document.getElementById('csvDiarioInput').addEventListener('change', function(e){
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => parseDiario(ev.target.result, file.name);
+  reader.readAsText(file, 'ISO-8859-1');
+  this.value = '';
+});
 
 function parseDiario(text, fileName) {
   const delim = text.split('\n')[0].includes(';') ? ';' : ',';
@@ -2451,7 +2470,7 @@ async function fetchVendasV1() {
 
   try {
     const url = SHEETS_WEBHOOK_URL + '?action=vendas_v1';
-    const resp = await fetch(url, { redirect: 'follow' });
+    const resp = await fetch(url);
     const text = await resp.text();
     const jsonStart = text.indexOf('{');
     const jsonEnd   = text.lastIndexOf('}');
@@ -2998,7 +3017,7 @@ function scheduleSave() {
 // SALVAR PAINEL DO VENDEDOR — Google Sheets
 // ─────────────────────────────────────────────
 
-const SHEETS_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbzdXi5KGvDjWl09RMUDr1KixpMZFFcmYGcmUXqDTn-hutNpkS-7Dp8K_GuUNAxOClOt/exec';
+const SHEETS_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbzCqxTtAzzpHuxMIY-5zIK3ePsl65HoLpWgz-ibxWCBjGhHWwy99DtYi3W4BtOW1no1/exec';
 
 document.getElementById('btnVendedorSalvar').addEventListener('click', async () => {
   if (!activeSeller) return;
