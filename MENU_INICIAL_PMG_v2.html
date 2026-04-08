@@ -2506,7 +2506,12 @@ function _applyVendasV1(rows) {
     const codNum  = parseFloat(codRaw.replace(',','.'));
     const codGC   = !isNaN(codNum) ? String(Math.round(codNum)) : codRaw.replace(/^0+/,'') || codRaw;
     const vendRaw = String(row['NOME_VENDEDOR'] || '').trim().replace(/\s+/g,' ').toUpperCase();
-    const fat     = parseFloat(String(row['FATURAMENTO'] || '0').replace(',','.')) || 0;
+    // Parse robusto: suporta "148.736", "148.736,50", "148736", "148736.50"
+    const fatRaw  = String(row['FATURAMENTO'] || '0').trim();
+    const fatStr  = fatRaw.includes(',')
+      ? fatRaw.replace(/\./g,'').replace(',','.')
+      : fatRaw.replace(/\.(?=\d{3}(?:[^\d]|$))/g,'');
+    const fat     = parseFloat(fatStr) || 0;
     const fatPos  = String(row['FAT>0'] || (fat > 0 ? '1' : '0')).trim();
     if (fatPos !== '1' && fat <= 0) return;
 
