@@ -496,7 +496,10 @@
             💾 Salvar
           </button>
         </div>
-        <div id="lastSaveLabel" style="font-family:'Montserrat',sans-serif;font-size:10px;font-weight:600;color:rgba(255,255,255,.6);text-align:right;min-height:14px;"></div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;">
+          <div id="lastUpdateLabel" style="font-family:'Montserrat',sans-serif;font-size:10px;font-weight:600;color:rgba(255,255,255,.6);text-align:right;min-height:13px;"></div>
+          <div id="lastSaveLabel"   style="font-family:'Montserrat',sans-serif;font-size:10px;font-weight:600;color:rgba(255,255,255,.6);text-align:right;min-height:13px;"></div>
+        </div>
         <button id="btnDashImportSheets" style="display:none;" title="Importar preenchimentos do Google Sheets">
           📊 Importar G.Sheets
         </button>
@@ -2458,42 +2461,90 @@ if (_btnIS) _btnIS.addEventListener('click', () => {
 
 // Botão no dashboard (painel do vendedor — Netlify)
 // ── ATUALIZAR VENDA DIÁRIA VIA SHEETS (vendas_v1) ────────────
+let _lastVendasV1Timestamp = null; // timestamp da última linha vista no vendas_v1
+let _lastAtualizadoTs      = null; // quando o vendedor clicou Atualizar pela última vez
+
 document.getElementById('btnAtualizarDiario').addEventListener('click', () => {
-  fetchVendasV1();
+  fetchVendasV1(true);
 });
 
-async function fetchVendasV1() {
-  const btn = document.getElementById('btnAtualizarDiario');
+async function fetchVendasV1(manual = false) {
+  const btn  = document.getElementById('btnAtualizarDiario');
   const orig = btn.innerHTML;
   btn.innerHTML = '⏳ Buscando...';
   btn.style.pointerEvents = 'none';
+  btn.style.background = 'rgba(26,63,168,.7)';
+  btn.style.animation  = '';
 
   try {
-    const url = SHEETS_WEBHOOK_URL + '?action=vendas_v1';
+    const url  = SHEETS_WEBHOOK_URL + '?action=vendas_v1';
     const resp = await fetch(url);
     const text = await resp.text();
     const jsonStart = text.indexOf('{');
     const jsonEnd   = text.lastIndexOf('}');
-    if (jsonStart < 0 || jsonEnd < 0) throw new Error('Resposta inválida do servidor');
+    if (jsonStart < 0 || jsonEnd < 0) throw new Error('Resposta inválida');
     const data = JSON.parse(text.substring(jsonStart, jsonEnd + 1));
     if (data.status !== 'ok' || !data.rows) throw new Error(data.msg || 'Sem dados');
 
-    // Processa igual ao parseDiario mas com dados do Sheets
+    // Verifica se há dados novos comparando o timestamp da última linha
+    const newTs = data.rows.length > 0 ? (data.rows[data.rows.length - 1]['DATA_FAT'] || '') : '';
+
+    if (!manual && newTs === _lastVendasV1Timestamp) {
+      // Sem dados novos — apenas reseta o botão
+      btn.innerHTML = orig;
+      btn.style.pointerEvents = '';
+      return;
+    }
+
+    if (!manual && newTs !== _lastVendasV1Timestamp) {
+      // Há dados novos mas vendedor não clicou — pisca o botão laranja
+      btn.innerHTML = '🔔 Dados novos!';
+      btn.style.background  = 'rgba(240,100,0,.85)';
+      btn.style.pointerEvents = '';
+      btn.style.animation   = 'pulse 1.2s ease-in-out infinite';
+      _lastVendasV1Timestamp = newTs;
+      return;
+    }
+
+    // Clicou manualmente — aplica os dados
     _applyVendasV1(data.rows);
+    _lastVendasV1Timestamp = newTs;
+
+    const now  = new Date();
+    const pad  = n => String(n).padStart(2,'0');
+    const tsStr = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+    _lastAtualizadoTs = tsStr;
+
+    const lbl = document.getElementById('lastUpdateLabel');
+    if (lbl) lbl.textContent = `🔄 Atualizado: ${tsStr}`;
 
     btn.innerHTML = '✅ Atualizado!';
-    const now = new Date();
-    const pad = n => String(n).padStart(2,'0');
-    const lbl = document.getElementById('lastSaveLabel');
-    if (lbl) lbl.textContent = `Atualizado: ${pad(now.getHours())}:${pad(now.getMinutes())}`;
-    setTimeout(() => { btn.innerHTML = orig; btn.style.pointerEvents = ''; }, 3000);
+    btn.style.background  = 'rgba(16,145,80,.8)';
+    btn.style.pointerEvents = '';
+    setTimeout(() => {
+      btn.innerHTML = '🔄 Atualizar';
+      btn.style.background = 'rgba(26,63,168,.7)';
+    }, 3000);
 
   } catch(err) {
     console.error('fetchVendasV1 erro:', err);
     btn.innerHTML = '⚠ Erro';
-    setTimeout(() => { btn.innerHTML = orig; btn.style.pointerEvents = ''; }, 3000);
+    btn.style.pointerEvents = '';
+    setTimeout(() => { btn.innerHTML = orig; btn.style.background = 'rgba(26,63,168,.7)'; }, 3000);
   }
 }
+
+// Verificação automática a cada 10 minutos
+setInterval(() => {
+  if (activeSeller) fetchVendasV1(false);
+}, 10 * 60 * 1000);
+
+// CSS para animação pulse
+(function() {
+  const s = document.createElement('style');
+  s.textContent = '@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.75;transform:scale(1.04)} }';
+  document.head.appendChild(s);
+})();
 
 function _applyVendasV1(rows) {
   if (!activeSeller) return;
@@ -3235,7 +3286,7 @@ if (window.__PMG_IS_PAINEL__) {
           const pad2 = n => String(n).padStart(2,'0');
           const ts = `${pad2(now2.getDate())}/${pad2(now2.getMonth()+1)}/${now2.getFullYear()} ${pad2(now2.getHours())}:${pad2(now2.getMinutes())}`;
           const lbl = document.getElementById('lastSaveLabel');
-          if (lbl) lbl.textContent = `Último envio: ${ts}`;
+          if (lbl) lbl.textContent = `💾 Salvo: ${ts}`;
           if (activeSeller) localStorage.setItem('pmg_lastSave_' + activeSeller.name, ts);
           setTimeout(() => { if (btn) btn.innerHTML = `💾 Salvar`; }, 3000);
         }, 2000);
