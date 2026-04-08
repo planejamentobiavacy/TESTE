@@ -2451,7 +2451,7 @@ async function fetchVendasV1() {
 
   try {
     const url = SHEETS_WEBHOOK_URL + '?action=vendas_v1';
-    const resp = await fetch(url);
+    const resp = await fetch(url, { redirect: 'follow' });
     const text = await resp.text();
     const jsonStart = text.indexOf('{');
     const jsonEnd   = text.lastIndexOf('}');
