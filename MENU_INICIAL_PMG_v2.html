@@ -367,7 +367,7 @@
   <div class="grid-wrapper" id="__adminBlock__">
     <!-- Instrução -->
     <p style="text-align:center;font-family:'Montserrat',sans-serif;font-size:13px;font-weight:600;color:var(--text-mid);margin-bottom:28px;line-height:1.7;">
-      Importe o CSV base, o Venda Diária e clique em <strong>💾 Salvar Painel</strong> para distribuir aos vendedores
+      Importe o CSV base e clique em <strong>💾 Salvar Painel</strong> para distribuir aos vendedores
     </p>
 
     <!-- Botões de ação centralizados -->
@@ -377,8 +377,7 @@
         <span style="font-size:16px;">⬆</span> Importar CSV
       </button>
 
-      <button id="btnImportDiario" style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#2271c5,#0f4a90);border:none;border-radius:8px;padding:13px 24px;font-family:'Montserrat',sans-serif;font-weight:700;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:#fff;cursor:pointer;box-shadow:0 4px 14px rgba(26,63,168,.3);transition:transform .15s,box-shadow .2s;">
-        <span style="font-size:16px;">📈</span> Venda Diária
+      <button id="btnImportDiario" style="display:none;">
       </button>
 
       <button id="btnImportSheets" style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#0f9d58,#0b7a44);border:none;border-radius:8px;padding:13px 24px;font-family:'Montserrat',sans-serif;font-weight:700;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:#fff;cursor:pointer;box-shadow:0 4px 14px rgba(15,157,88,.3);transition:transform .15s,box-shadow .2s;">
@@ -2375,7 +2374,7 @@ _htmlPicker.addEventListener('change', function() {
 function savePainel() {
   const totalRows = sellers.reduce((acc, s) => acc + (csvData[s.csvName] || []).length, 0);
   if (totalRows === 0) {
-    alert('Nenhum dado carregado. Importe o CSV base e o Venda Diária primeiro.');
+    alert('Nenhum dado carregado. Importe o CSV base primeiro.');
     return;
   }
   _htmlPicker.click();
@@ -2391,7 +2390,7 @@ function _buildPainel(sourceHTML) {
     const pad = n => String(n).padStart(2,'0');
     const dateLabel = `${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}`;
     const dateFmt   = `${pad(now.getDate())}/${pad(now.getMonth()+1)}/${now.getFullYear()}`;
-    const dataSnapshot = JSON.stringify(csvData);
+    const dataSnapshot = JSON.stringify(csvData).replace(/<\/script>/gi, '<\\/script>');
 
     // 1. Muda título
     sourceHTML = sourceHTML.replace('<h1>Menu Inicial</h1>', '<h1>Painel de Vendedores</h1>');
