@@ -491,6 +491,7 @@
           <button id="btnAtualizarDiario" style="display:inline-flex;align-items:center;gap:6px;background:rgba(26,63,168,.7);border:1.5px solid rgba(255,255,255,.4);border-radius:8px;padding:9px 14px;font-family:'Montserrat',sans-serif;font-weight:700;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:#fff;cursor:pointer;transition:.2s;" title="Buscar vendas atualizadas do Google Sheets">
             🔄 Atualizar
           </button>
+          <span id="bellIndicator" style="display:none;font-size:20px;cursor:pointer;animation:pulse 1.2s ease-in-out infinite;" title="Há dados novos no Sheets! Clique em Atualizar." onclick="document.getElementById('btnAtualizarDiario').click()">🔔</span>
           <button id="btnVendedorSalvar" style="display:inline-flex;align-items:center;gap:8px;background:rgba(16,145,80,.8);border:1.5px solid rgba(255,255,255,.4);border-radius:8px;padding:9px 18px;font-family:'Montserrat',sans-serif;font-weight:700;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:#fff;cursor:pointer;transition:.2s;" title="Enviar dados para o Google Sheets">
             💾 Salvar
           </button>
@@ -513,12 +514,7 @@
 
   <div class="dash-body">
 
-    <!-- Banner de aviso de cache restaurado -->
-    <div id="cacheWarningBanner" style="display:none;margin:16px 24px 0;padding:12px 18px;background:#fff8e1;border:1.5px solid #f0a500;border-radius:10px;display:none;align-items:center;gap:12px;font-family:'Montserrat',sans-serif;font-size:12px;font-weight:600;color:#7a5200;">
-      <span style="font-size:18px;">⚠️</span>
-      <span style="flex:1;">Dados locais restaurados do cache anterior (Dias Contato, Carteira etc). Se isso não for esperado, limpe o cache.</span>
-      <button onclick="limparCacheVendedor()" style="background:#d42b2b;border:none;border-radius:7px;padding:7px 14px;color:#fff;font-family:'Montserrat',sans-serif;font-weight:700;font-size:11px;cursor:pointer;white-space:nowrap;">🗑 Limpar Cache</button>
-    </div>
+    <!-- Banner de aviso de cache removido — dados do cache são necessários -->
 
     <div class="stats-row" id="statsRow"></div>
 
@@ -1468,7 +1464,13 @@ function openDashboard(s) {
   // Mescla preenchimentos salvos antes de filtrar
   const hadCache = mergePersistedData(s.csvName);
   const banner = document.getElementById('cacheWarningBanner');
-  if (banner) banner.style.display = hadCache ? 'flex' : 'none';
+  if (banner) {
+    // Só mostra o banner se o cache for de um dia anterior
+    const savedDate = localStorage.getItem('pmg_saveDate_' + s.csvName);
+    const today = new Date().toDateString();
+    const isOldCache = hadCache && savedDate && savedDate !== today;
+    banner.style.display = isOldCache ? 'flex' : 'none';
+  }
 
   // Apenas linhas com GRUPO COMERCIAL preenchido
   activeRows = (csvData[s.csvName] || []).filter(r => {
@@ -1514,9 +1516,16 @@ function openDashboard(s) {
   const lbl = document.getElementById('lastSaveLabel');
   if (lbl) {
     const ts = localStorage.getItem('pmg_lastSave_' + s.name);
-    lbl.textContent = ts ? `Último envio: ${ts}` : '';
+    lbl.textContent = ts ? `💾 Salvo: ${ts}` : '';
+  }
+  // Restaura último atualizado do localStorage
+  const lblU = document.getElementById('lastUpdateLabel');
+  if (lblU) {
+    const tsU = localStorage.getItem('pmg_lastUpdate_' + s.name);
+    lblU.textContent = tsU ? `🔄 Atualizado: ${tsU}` : '';
   }
   window.scrollTo(0, 0);
+  _startVendasV1Monitor();
 }
 
 // ─────────────────────────────────────────────
@@ -2460,7 +2469,7 @@ if (_btnIS) _btnIS.addEventListener('click', () => {
 
 // Botão no dashboard (painel do vendedor — Netlify)
 // ── ATUALIZAR VENDA DIÁRIA VIA SHEETS (vendas_v1) ────────────
-let _lastVendasV1Timestamp = null; // timestamp da última linha vista no vendas_v1
+let _lastVendasV1Timestamp = null; // fingerprint dos últimos dados vistos
 let _lastAtualizadoTs      = null; // quando o vendedor clicou Atualizar pela última vez
 
 document.getElementById('btnAtualizarDiario').addEventListener('click', () => {
@@ -2469,11 +2478,13 @@ document.getElementById('btnAtualizarDiario').addEventListener('click', () => {
 
 async function fetchVendasV1(manual = false) {
   const btn  = document.getElementById('btnAtualizarDiario');
-  const orig = btn.innerHTML;
-  btn.innerHTML = '⏳ Buscando...';
-  btn.style.pointerEvents = 'none';
-  btn.style.background = 'rgba(26,63,168,.7)';
-  btn.style.animation  = '';
+  const bell = document.getElementById('bellIndicator');
+
+  if (manual) {
+    btn.innerHTML = '⏳ Buscando...';
+    btn.style.pointerEvents = 'none';
+    btn.style.background = 'rgba(26,63,168,.7)';
+  }
 
   try {
     const url  = SHEETS_WEBHOOK_URL + '?action=vendas_v1';
@@ -2485,68 +2496,81 @@ async function fetchVendasV1(manual = false) {
     const data = JSON.parse(text.substring(jsonStart, jsonEnd + 1));
     if (data.status !== 'ok' || !data.rows) throw new Error(data.msg || 'Sem dados');
 
-    // Verifica se há dados novos comparando o timestamp da última linha
-    const newTs = data.rows.length > 0 ? (data.rows[data.rows.length - 1]['DATA_FAT'] || '') : '';
+    // Fingerprint: total linhas + soma FAT
+    const fatSum = data.rows.reduce((acc, r) => {
+      const raw = String(r['FATURAMENTO'] || '0').trim();
+      const str = raw.includes(',') ? raw.replace(/\./g,'').replace(',','.') : raw.replace(/\.(?=\d{3}(?:[^\d]|$))/g,'');
+      return acc + (parseFloat(str) || 0);
+    }, 0);
+    const newFp = `${data.rows.length}_${Math.round(fatSum)}`;
 
-    if (!manual && newTs === _lastVendasV1Timestamp) {
-      // Sem dados novos — apenas reseta o botão
-      btn.innerHTML = orig;
+    if (!manual && _lastVendasV1Timestamp !== null) {
+      // Verificação periódica — só mostra sininho se mudou
+      if (newFp !== _lastVendasV1Timestamp) {
+        _lastVendasV1Timestamp = newFp;
+        if (bell) bell.style.display = 'inline';
+      }
       btn.style.pointerEvents = '';
       return;
     }
 
-    if (!manual && newTs !== _lastVendasV1Timestamp) {
-      // Há dados novos mas vendedor não clicou — pisca o botão laranja
-      btn.innerHTML = '🔔 Dados novos!';
-      btn.style.background  = 'rgba(240,100,0,.85)';
-      btn.style.pointerEvents = '';
-      btn.style.animation   = 'pulse 1.2s ease-in-out infinite';
-      _lastVendasV1Timestamp = newTs;
-      return;
-    }
-
-    // Clicou manualmente — aplica os dados
+    // Aplica dados: ao abrir dashboard (fingerprint null) OU clique manual
     _applyVendasV1(data.rows);
-    _lastVendasV1Timestamp = newTs;
+    _lastVendasV1Timestamp = newFp;
+    if (bell) bell.style.display = 'none';
 
-    const now  = new Date();
-    const pad  = n => String(n).padStart(2,'0');
+    const now = new Date();
+    const pad = n => String(n).padStart(2,'0');
     const tsStr = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
     _lastAtualizadoTs = tsStr;
-
     const lbl = document.getElementById('lastUpdateLabel');
     if (lbl) lbl.textContent = `🔄 Atualizado: ${tsStr}`;
+    if (activeSeller) localStorage.setItem('pmg_lastUpdate_' + activeSeller.name, tsStr);
 
-    btn.innerHTML = '✅ Atualizado!';
-    btn.style.background  = 'rgba(16,145,80,.8)';
-    btn.style.pointerEvents = '';
-    setTimeout(() => {
-      btn.innerHTML = '🔄 Atualizar';
-      btn.style.background = 'rgba(26,63,168,.7)';
-    }, 3000);
+    if (manual) {
+      btn.innerHTML = '✅ Atualizado!';
+      btn.style.background = 'rgba(16,145,80,.8)';
+      btn.style.pointerEvents = '';
+      setTimeout(() => {
+        btn.innerHTML = '🔄 Atualizar';
+        btn.style.background = 'rgba(26,63,168,.7)';
+      }, 3000);
+    } else {
+      btn.style.pointerEvents = '';
+    }
 
   } catch(err) {
     console.error('fetchVendasV1 erro:', err);
-    btn.innerHTML = '⚠ Erro';
-    btn.style.pointerEvents = '';
-    setTimeout(() => { btn.innerHTML = orig; btn.style.background = 'rgba(26,63,168,.7)'; }, 3000);
+    if (manual) {
+      btn.innerHTML = '⚠ Erro';
+      btn.style.pointerEvents = '';
+      setTimeout(() => {
+        btn.innerHTML = '🔄 Atualizar';
+        btn.style.background = 'rgba(26,63,168,.7)';
+      }, 3000);
+    } else {
+      btn.style.pointerEvents = '';
+    }
   }
 }
 
-// Verificação automática a cada 10 minutos
+// Verificação a cada 10 minutos
 setInterval(() => {
   if (activeSeller) fetchVendasV1(false);
 }, 10 * 60 * 1000);
 
-// CSS para animação pulse
-(function() {
-  const s = document.createElement('style');
-  s.textContent = '@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.75;transform:scale(1.04)} }';
-  document.head.appendChild(s);
-})();
+// Ao abrir dashboard — aplica automaticamente (fingerprint null força aplicação)
+function _startVendasV1Monitor() {
+  _lastVendasV1Timestamp = null;
+  setTimeout(() => { if (activeSeller) fetchVendasV1(false); }, 1000);
+}
 
 function _applyVendasV1(rows) {
   if (!activeSeller) return;
+
+  // Persiste dados atuais antes de qualquer modificação (preserva contatos)
+  if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
+  saveSellerData(activeSeller.csvName);
 
   // Monta diarioMap igual ao parseDiario
   const diarioMap = {};
@@ -2592,8 +2616,9 @@ function _applyVendasV1(rows) {
   const existingRows = csvData[s.csvName] || [];
 
   // Zera fat/posit nas linhas existentes antes de reaplicar
+  // Não toca em _isNew para preservar clientes adicionados manualmente
   existingRows.forEach(row => {
-    if (!row._fromDiario) {
+    if (!row._fromDiario && !row._isNew) {
       row['FATURAMENTO'] = '0';
       row['POSITIVAÇÃO'] = '0';
       row['DIAS_VENDA']  = '';
@@ -2601,7 +2626,7 @@ function _applyVendasV1(rows) {
     }
   });
 
-  // Remove linhas _fromDiario antigas
+  // Remove linhas _fromDiario antigas (preserva _isNew)
   csvData[s.csvName] = existingRows.filter(r => !r._fromDiario);
 
   Object.keys(map).forEach(codGC => {
@@ -2642,8 +2667,24 @@ function _applyVendasV1(rows) {
     }
   });
 
-  // Reabre o dashboard com dados atualizados
-  openDashboard(activeSeller);
+  // Atualiza activeRows e re-renderiza sem chamar openDashboard
+  // (evita loop e perda de linhas _isNew)
+  activeRows = (csvData[s.csvName] || []).filter(r => {
+    const g = (r['GRUPO_  COMERCIAL'] || '').trim();
+    return g !== '' && g !== '0' && !isNaN(parseFloat(g)) ? true : (g !== '');
+  });
+  activeRows.forEach(r => {
+    const fat = parseFloat(String(r['FATURAMENTO'] || '0').replace(',','.')) || 0;
+    r['VENDA'] = fat > 0 ? 'SIM' : 'NÃO';
+    if (fat > 0 && r['CARTEIRA'] !== 'NÃO') r['CARTEIRA'] = 'SIM';
+    const posit = parseInt(r['POSITIVAÇÃO'] || '0', 10);
+    r['POSITIVAÇÃO'] = isNaN(posit) ? '0' : String(posit);
+    if (!r['CLUSTER'] || r['CLUSTER'].trim() === '') r['CLUSTER'] = 'DEMAIS';
+  });
+  activeClusters = [...new Set(activeRows.map(r => r['CLUSTER']).filter(Boolean))];
+  applyFilters();
+  renderTable();
+  renderStats(filteredRows.length > 0 ? filteredRows : activeRows);
 }
 
 document.getElementById('btnDashImportSheets').addEventListener('click', () => {
@@ -2919,6 +2960,7 @@ function saveSellerData(sellerCsvName) {
       return entry;
     });
     localStorage.setItem('pmg2_' + sellerCsvName, JSON.stringify(payload));
+    localStorage.setItem('pmg_saveDate_' + sellerCsvName, new Date().toDateString());
   } catch(e) { console.warn('localStorage save error:', e); }
 }
 
@@ -2955,7 +2997,7 @@ function mergePersistedData(sellerCsvName) {
     const saved  = savedMap[codGC + '|' + estado];
     if (saved) {
       PERSIST_FIELDS.forEach(f => {
-        if (f === 'GRUPO_  COMERCIAL' || f === '_isNew' || f === '_fromDiario') return;
+        if (f === 'GRUPO_  COMERCIAL' || f === '_fromDiario') return;
         if (saved[f] !== undefined) {
           if (f === 'DIAS_CONTATO') {
             row[f] = _cleanDias(saved[f]);
@@ -3085,7 +3127,7 @@ document.getElementById('btnVendedorSalvar').addEventListener('click', async () 
     const now = new Date();
     const pad = n => String(n).padStart(2,'0');
     const hoje = `${pad(now.getDate())}/${pad(now.getMonth()+1)}/${now.getFullYear()}`;
-    const dateFmt = `${hoje} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+    const dateFmt = `${hoje} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
 
     // Filtra apenas linhas com GRUPO COMERCIAL preenchido
     const filledRows = activeRows.filter(row => (row['GRUPO_  COMERCIAL'] || '').trim() !== '');
@@ -3283,7 +3325,7 @@ if (window.__PMG_IS_PAINEL__) {
           btn.style.pointerEvents = '';
           const now2 = new Date();
           const pad2 = n => String(n).padStart(2,'0');
-          const ts = `${pad2(now2.getDate())}/${pad2(now2.getMonth()+1)}/${now2.getFullYear()} ${pad2(now2.getHours())}:${pad2(now2.getMinutes())}`;
+          const ts = `${pad2(now2.getDate())}/${pad2(now2.getMonth()+1)}/${now2.getFullYear()} ${pad2(now2.getHours())}:${pad2(now2.getMinutes())}:${pad2(now2.getSeconds())}`;
           const lbl = document.getElementById('lastSaveLabel');
           if (lbl) lbl.textContent = `💾 Salvo: ${ts}`;
           if (activeSeller) localStorage.setItem('pmg_lastSave_' + activeSeller.name, ts);
