@@ -848,15 +848,28 @@ async function loadData(){
   console.log('🔄 Iniciando fetch...');
 
   const allCandidates = C.sh;
-  const [exportData] = await Promise.all([
-    loadAllFromAppsScript(),
-    loadVendasV1(),
-    loadMetaOutros()
-  ]);
-  console.log(`⏱️ Fetch concluído: ${Date.now()-t0}ms | export=${!!exportData} v1=${VENDAS_V1.length}`);
+
+  // Fase 1: carrega vendas_v1 e META_OUTROS rapidamente — renderiza já
+  await Promise.all([loadVendasV1(), loadMetaOutros()]);
+  console.log(`⏱️ Fase 1: ${Date.now()-t0}ms | v1=${VENDAS_V1.length} meta=${Object.keys(META_OUTROS).length}`);
+
+  // Renderiza com dados parciais (canais já funcionam)
+  allCandidates.forEach(name => { DATA[name] = []; });
+  btn.classList.remove('ld');
+  const now0a = new Date();
+  const pad0a = n => String(n).padStart(2,'0');
+  document.getElementById('upd').textContent = `Atualizado: ${pad0a(now0a.getDate())}/${pad0a(now0a.getMonth()+1)} ${pad0a(now0a.getHours())}:${pad0a(now0a.getMinutes())}`;
+  document.getElementById('dbar').style.display = 'flex';
+  document.getElementById('vtabs-bar').style.display = 'block';
+  buildTabs(); render();
+
+  // Fase 2: carrega export PMG em background — re-renderiza quando terminar
+  const exportData = await loadAllFromAppsScript();
+  console.log(`⏱️ Fase 2 (PMG): ${Date.now()-t0}ms | export=${!!exportData}`);
+
+  const shOriginal = ['ADRIANO','ALEX','AUGUSTO','BRUNO','DEBORAH','DENIS','DOUGLAS','JOYCE','LEANDRO','LUCAS','MARCELO','MATHEUS','NOA','RAFAEL','ROSANE','SAMARA','THAIS','WESLEY','ALINE','CINTIA','KEULLY'];
 
   if (exportData) {
-    // Usa dados do export diretamente
     allCandidates.forEach(name => {
       const vendorRows = exportData[name];
       if (vendorRows && vendorRows.length > 0) {
@@ -872,47 +885,15 @@ async function loadData(){
     allCandidates.forEach(name => { DATA[name] = []; });
   }
 
-  // Filtra abas com dados
-  // Remove fallbacks: Google retorna outra aba quando a pedida não existe
-  // Detecta pelo número exato de clientes — abas reais têm contagens únicas
-  const countMap = {};
-  allCandidates.forEach(v => {
-    const n = (DATA[v]||[]).length;
-    if (n > 0) {
-      if (!countMap[n]) countMap[n] = [];
-      countMap[n].push(v);
-    }
-  });
-
-  // Se múltiplas abas têm exatamente o mesmo nº de clientes, mantém só a que
-  // está na lista sh original (C.sh) — as outras são fallback
-  const shOriginal = ['ADRIANO','ALEX','AUGUSTO','BRUNO','DEBORAH','DENIS','DOUGLAS','JOYCE','LEANDRO','LUCAS','MARCELO','MATHEUS','NOA','RAFAEL','ROSANE','SAMARA','THAIS','WESLEY','ALINE','CINTIA','KEULLY'];
-  Object.values(countMap).forEach(vendors => {
-    if (vendors.length > 1) {
-      // Prefere o que está na lista original; se empate, mantém o último
-      const real = vendors.filter(v => shOriginal.includes(v));
-      const fake = vendors.filter(v => !shOriginal.includes(v));
-      // Se há um real e vários falsos, zera os falsos
-      fake.forEach(v => { DATA[v] = []; console.warn(`"${v}" zerado (fallback)`); });
-      // Se há múltiplos reais com mesmo nº, mantém todos (podem ter dados diferentes)
-    }
-  });
-
   const activeSheets = allCandidates.filter(v => (DATA[v]||[]).length > 0);
   C.sh = activeSheets.length > 0 ? activeSheets : shOriginal;
   console.log('✅ Abas ativas:', C.sh.join(', '));
 
-  btn.classList.remove('ld');
-  const now0 = new Date();
-  const pad0 = n => String(n).padStart(2,'0');
-  document.getElementById('upd').textContent = `Atualizado: ${pad0(now0.getDate())}/${pad0(now0.getMonth()+1)} ${pad0(now0.getHours())}:${pad0(now0.getMinutes())}`;
-  const totalRows = C.sh.reduce((a,v) => a + (DATA[v]||[]).length, 0);
-  if (totalRows === 0) showErr('⚠️ Nenhum dado carregado. Verifique o compartilhamento da planilha.');
-  document.getElementById('dbar').style.display = 'flex';
-  document.getElementById('vtabs-bar').style.display = 'block';
-  console.log(`⏱️ Pré-render: ${Date.now()-t0}ms`);
+  _lastV1MaxDate  = getV1MaxDate();
+  _lastPmgMaxDate = getPmgMaxDate();
+
   buildTabs(); render();
-  console.log(`⏱️ Render concluído: ${Date.now()-t0}ms`);
+  console.log(`⏱️ Render completo: ${Date.now()-t0}ms`);
 }
 
 // ── PERIOD ────────────────────────────────────────────
