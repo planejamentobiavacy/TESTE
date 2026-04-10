@@ -1513,10 +1513,13 @@ function openDashboard(s) {
     banner.style.display = isOldCache ? 'flex' : 'none';
   }
 
-  // Apenas linhas com GRUPO COMERCIAL preenchido
+  // Apenas linhas com GRUPO COMERCIAL preenchido e diferente de 0
   activeRows = (csvData[s.csvName] || []).filter(r => {
     const g = (r['GRUPO_  COMERCIAL'] || '').trim();
-    return g !== '' && g !== '0' && !isNaN(parseFloat(g)) ? true : (g !== '');
+    if (!g || g === '' ) return false;
+    const n = parseFloat(g.replace(',','.'));
+    if (!isNaN(n) && n === 0) return false; // exclui GC = 0
+    return true;
   });
 
   // Corrige campos automáticos
@@ -1682,10 +1685,13 @@ function renderTable() {
   DISPLAY_COLS.forEach((c, ci) => {
     const frozenCls = FROZEN_KEYS.includes(c.key) ? ` col-frozen-${FROZEN_KEYS.indexOf(c.key)}` : '';
     const isSort    = sortCol === c.key;
-    const arrow     = isSort ? (sortDir === 1 ? ' ▲' : ' ▼') : ' ⇅';
-    const arrowStyle = isSort ? 'color:#fff;font-size:11px;' : 'color:#a0aec0;font-size:11px;';
+    const triUp   = `<svg width="7" height="5" viewBox="0 0 7 5"><polygon points="3.5,0 7,5 0,5" fill="${isSort && sortDir===1 ? '#fff' : 'rgba(255,255,255,.3)'}"/></svg>`;
+    const triDown = `<svg width="7" height="5" viewBox="0 0 7 5"><polygon points="0,0 7,0 3.5,5" fill="${isSort && sortDir===-1 ? '#fff' : 'rgba(255,255,255,.3)'}"/></svg>`;
     html += `<th class="${frozenCls}" style="cursor:pointer;user-select:none;white-space:nowrap;" onclick="setSort('${c.key.replace(/'/g,"\\'")}')">
-      ${c.label}<span style="${arrowStyle}">${arrow}</span>
+      <div style="display:inline-flex;align-items:center;gap:5px;vertical-align:middle;">
+        ${c.label}
+        <div style="display:flex;flex-direction:column;gap:2px;">${triUp}${triDown}</div>
+      </div>
     </th>`;
   });
   html += `</tr></thead><tbody>`;
@@ -2331,6 +2337,11 @@ function addNewClient() {
   newRow['CARTEIRA'] = 'SIM';
   newRow['CLUSTER']  = 'DEMAIS';
 
+  // Insere no csvData para persistência
+  if (activeSeller && csvData[activeSeller.csvName]) {
+    csvData[activeSeller.csvName].unshift(newRow);
+  }
+
   // Insere no topo de activeRows e filteredRows
   activeRows.unshift(newRow);
   filteredRows.unshift(newRow);
@@ -2708,10 +2719,12 @@ function _applyVendasV1(rows) {
   });
 
   // Atualiza activeRows e re-renderiza sem chamar openDashboard
-  // (evita loop e perda de linhas _isNew)
   activeRows = (csvData[s.csvName] || []).filter(r => {
     const g = (r['GRUPO_  COMERCIAL'] || '').trim();
-    return g !== '' && g !== '0' && !isNaN(parseFloat(g)) ? true : (g !== '');
+    if (!g || g === '') return false;
+    const n = parseFloat(g.replace(',','.'));
+    if (!isNaN(n) && n === 0) return false;
+    return true;
   });
   activeRows.forEach(r => {
     const fat = parseFloat(String(r['FATURAMENTO'] || '0').replace(',','.')) || 0;
