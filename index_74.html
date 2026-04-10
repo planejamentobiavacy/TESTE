@@ -540,22 +540,26 @@ let _cbIdx = 0;
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzdXi5KGvDjWl09RMUDr1KixpMZFFcmYGcmUXqDTn-hutNpkS-7Dp8K_GuUNAxOClOt/exec';
 let _asIdx = 0;
 
-// Carrega TODOS os vendedores de uma vez via action=export
+// Carrega TODOS os vendedores via cache (rápido) ou ao vivo (fallback)
 async function loadAllFromAppsScript() {
   try {
-    const url = `${APPS_SCRIPT_URL}?action=export&t=${Date.now()}`;
+    // Tenta cache primeiro — resposta em ~200ms se o trigger estiver ativo
+    const url = `${APPS_SCRIPT_URL}?action=exportCached&t=${Date.now()}`;
     const r = await fetch(url, { redirect: 'follow', signal: (() => { const c = new AbortController(); setTimeout(() => c.abort(), 30000); return c.signal; })() });
     if (r.ok) {
       const txt = await r.text();
       const data = JSON.parse(txt);
       if (data && data.status === 'ok' && data.vendedores) {
-        // Filtra apenas vendedores da lista C.sh — ignora abas extras da planilha
         const filtered = {};
         Object.keys(data.vendedores).forEach(nome => {
           if (C.sh.includes(nome)) filtered[nome] = data.vendedores[nome];
-          else console.log(`⚠️ Aba "${nome}" ignorada — não está na lista de vendedores`);
         });
-        console.log(`✅ Export: ${Object.keys(filtered).length} vendedores carregados (${Object.keys(data.vendedores).length} total na planilha)`);
+        const src = data._fromCache ? '⚡ cache' : '🔄 ao vivo';
+        console.log(`✅ Export (${src}): ${Object.keys(filtered).length} vendedores`);
+        // Se veio do cache, dispara refresh silencioso em background para atualizar o cache
+        if (data._fromCache) {
+          setTimeout(() => warmServerCache(), 500);
+        }
         return filtered;
       }
     }
@@ -563,6 +567,19 @@ async function loadAllFromAppsScript() {
     console.warn('❌ Export falhou:', e.message);
   }
   return null;
+}
+
+// Aquece o cache no servidor em background (sem bloquear a UI)
+async function warmServerCache() {
+  try {
+    await fetch(`${APPS_SCRIPT_URL}?action=exportFresh&t=${Date.now()}`, {
+      redirect: 'follow',
+      signal: (() => { const c = new AbortController(); setTimeout(() => c.abort(), 45000); return c.signal; })()
+    });
+    console.log('🔥 Cache do servidor atualizado em background');
+  } catch(e) {
+    // silencioso — não afeta a UI
+  }
 }
 
 // Carrega aba vendas_v1 para Faturamento e Positivado MTD
