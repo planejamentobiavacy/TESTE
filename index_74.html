@@ -87,9 +87,9 @@ main{padding:26px 36px;max-width:1600px;margin:0 auto}
 .kpi:hover{transform:translateY(-3px);box-shadow:var(--sh2)}
 .kpi-bar{position:absolute;top:0;left:0;right:0;height:4px;background:var(--kc,var(--blue));border-radius:var(--r) var(--r) 0 0}
 .kpi-ico{position:absolute;top:14px;right:14px;font-size:30px;opacity:.1}
-.kpi-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--text3);margin-bottom:9px}
-.kpi-val{font-family:'Montserrat',sans-serif;font-size:28px;font-weight:700;color:var(--text);line-height:1;margin-bottom:5px}
-.kpi-val.sm{font-size:19px}.kpi-val.lg{font-family:'Montserrat',sans-serif;font-size:30px;font-weight:800}.kpi-sub{font-size:11px;color:var(--text3);font-weight:500}
+.kpi-lbl{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--text3);margin-bottom:7px}
+.kpi-val{font-family:'Montserrat',sans-serif;font-size:22px;font-weight:700;color:var(--text);line-height:1;margin-bottom:4px}
+.kpi-val.sm{font-size:15px}.kpi-val.lg{font-family:'Montserrat',sans-serif;font-size:24px;font-weight:800}.kpi-sub{font-size:9px;color:var(--text3);font-weight:500}
 
 /* ── SECTION TITLE ── */
 .stitle{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1.2px;color:var(--text3);margin-bottom:14px;display:flex;align-items:center;gap:8px}
@@ -155,6 +155,7 @@ tbody td:first-child{font-weight:700;color:var(--text)}
 .st-ico{font-size:44px;opacity:.3}.st-box p{font-size:14px;font-weight:600}
 .spin{width:36px;height:36px;border:3px solid var(--gray);border-top-color:var(--blue);border-radius:50%;animation:sp .75s linear infinite}
 @keyframes sp{to{transform:rotate(360deg)}}
+@keyframes bellPulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.08);opacity:.85}}
 .err{background:#fff3f3;border:1.5px solid #ffc5c5;border-radius:10px;padding:12px 18px;color:var(--red);font-size:13px;font-weight:600;margin-bottom:18px;display:none}
 .err.on{display:block}
 .fin{animation:fi .35s ease}
@@ -262,15 +263,15 @@ tbody td:first-child{font-weight:700;color:var(--text)}
 
 <!-- GROUP FILTER BAR -->
 <div class="dbar" id="gbar" style="display:none;background:var(--white);border-bottom:2px solid var(--gray)">
-  <span class="dlbl">🏢 Grupo:</span>
-  <div class="dchip active" id="gchip-all"     onclick="setGroupChip('all')"     >🌐 Todos</div>
-  <div class="dchip"        id="gchip-farmer"  onclick="setGroupChip('farmer')"  >🌾 Farmer</div>
-  <div class="dchip"        id="gchip-developer" onclick="setGroupChip('developer')">🖥️ Developer</div>
-  <div class="dchip"        id="gchip-closer"  onclick="setGroupChip('closer')"  >🎯 Closer</div>
-  <div class="dchip"        id="gchip-martins" onclick="setGroupChip('martins')" >🏬 Martins</div>
-  <div class="dchip"        id="gchip-rca"     onclick="setGroupChip('rca')"     >📦 RCA</div>
-  <div class="dchip"        id="gchip-ka"      onclick="setGroupChip('ka')"      >🔑 KA</div>
-  <div class="dchip"        id="gchip-hava"    onclick="setGroupChip('hava')"    >☀️ Hava</div>
+  <span class="dlbl">📋 CANAL:</span>
+  <div class="dchip active" id="gchip-all"       onclick="setGroupChip('all')"      >Todos</div>
+  <div class="dchip"        id="gchip-farmer"    onclick="setGroupChip('farmer')"   >Farmer</div>
+  <div class="dchip"        id="gchip-developer" onclick="setGroupChip('developer')">Developer</div>
+  <div class="dchip"        id="gchip-closer"    onclick="setGroupChip('closer')"   >Closer</div>
+  <div class="dchip"        id="gchip-martins"   onclick="setGroupChip('martins')"  >Martins</div>
+  <div class="dchip"        id="gchip-rca"       onclick="setGroupChip('rca')"      >RCA</div>
+  <div class="dchip"        id="gchip-ka"        onclick="setGroupChip('ka')"       >KA</div>
+  <div class="dchip"        id="gchip-hava"      onclick="setGroupChip('hava')"     >Hava</div>
 </div>
 
 <!-- BANNER ATUALIZANDO -->
@@ -319,7 +320,7 @@ const STAGES = [
 ];
 
 // ── STATE ────────────────────────────────────────────
-let DATA = {}, ACTIVE = 'all', PERIOD = 'all', GROUP = 'all';
+let DATA = {}, ACTIVE = 'all', PERIOD = 'all', GROUP = 'all', VENDOR_HIGHLIGHT = null;
 
 // Mapeamento NOME_VENDEDOR (vendas_v1) → nome da aba
 const VENDOR_MAP = {
@@ -389,15 +390,32 @@ function getPmgMaxDate() {
   return max;
 }
 
+let _alertFat = false;
+let _alertPmg = false;
+
 function showBell(label) {
+  // Mantém o botão geral de atualizar (compatibilidade)
   document.getElementById('bell-label').textContent = label || '';
   document.getElementById('btn-bell').style.display = '';
+  // Ativa o alerta específico
+  if (label === 'novo fat') { _alertFat = true; updateAlertBells(); }
+  if (label === 'novo pmg') { _alertPmg = true; updateAlertBells(); }
 }
 
 function clearBell() {
   _lastV1MaxDate  = getV1MaxDate();
   _lastPmgMaxDate = getPmgMaxDate();
+  _alertFat = false;
+  _alertPmg = false;
   document.getElementById('btn-bell').style.display = 'none';
+  updateAlertBells();
+}
+
+function updateAlertBells() {
+  const fatBell = document.getElementById('kpi-bell-fat');
+  const pmgBell = document.getElementById('kpi-bell-pmg');
+  if (fatBell) fatBell.style.display = _alertFat ? 'inline-flex' : 'none';
+  if (pmgBell) pmgBell.style.display = _alertPmg ? 'inline-flex' : 'none';
 }
 
 async function checkUpdates() {
@@ -526,7 +544,7 @@ let _asIdx = 0;
 async function loadAllFromAppsScript() {
   try {
     const url = `${APPS_SCRIPT_URL}?action=export&t=${Date.now()}`;
-    const r = await fetch(url, { redirect: 'follow', signal: (() => { const c = new AbortController(); setTimeout(() => c.abort(), 60000); return c.signal; })() });
+    const r = await fetch(url, { redirect: 'follow', signal: (() => { const c = new AbortController(); setTimeout(() => c.abort(), 30000); return c.signal; })() });
     if (r.ok) {
       const txt = await r.text();
       const data = JSON.parse(txt);
@@ -551,14 +569,11 @@ async function loadAllFromAppsScript() {
 async function loadVendasV1() {
   try {
     const url = `${APPS_SCRIPT_URL}?sheet=vendas_v1&t=${Date.now()}`;
-    console.log('🔄 vendas_v1: carregando...');
     const ctrl = new AbortController();
-    setTimeout(() => ctrl.abort(), 30000);
+    setTimeout(() => ctrl.abort(), 15000);
     const r = await fetch(url, { redirect: 'follow', signal: ctrl.signal });
-    console.log(`📡 vendas_v1: status=${r.status} ok=${r.ok}`);
     if (!r.ok) { console.warn('❌ vendas_v1: status não ok'); return; }
     const txt = await r.text();
-    console.log(`📄 vendas_v1: resposta ${txt.length} chars, início: ${txt.slice(0,100)}`);
     let data;
     try { data = JSON.parse(txt); } catch(e) { console.warn('❌ vendas_v1: JSON inválido', e.message); return; }
     console.log(`📦 vendas_v1: status="${data.status}" rows=${data.rows?.length} headers=${data.headers?.length} error="${data.error||''}"`);
@@ -576,7 +591,7 @@ async function loadVendasV1() {
       return { vendor, nomeVend, codClienteLoja: codCL, codGC, fat, date, dateStr };
     }).filter(r => r.vendor && r.date);
 
-    console.log(`✅ vendas_v1: ${VENDAS_V1.length} linhas válidas | ex: vendor="${VENDAS_V1[0]?.vendor}" fat=${VENDAS_V1[0]?.fat} date=${VENDAS_V1[0]?.dateStr}`);
+    console.log(`✅ vendas_v1: ${VENDAS_V1.length} linhas`);
     _lastV1MaxDate  = getV1MaxDate();
     _lastPmgMaxDate = getPmgMaxDate();
   } catch(e) {
@@ -862,20 +877,29 @@ function pMoney(s){
 async function loadData(){
   const btn = document.getElementById('btn-ref');
   btn.classList.add('ld');
-  document.getElementById('btn-bell').style.display = 'none'; // esconde sininho ao atualizar
+  document.getElementById('btn-bell').style.display = 'none';
   setLoad(); hideErr();
   DATA = {};
+  _alertFat = false; _alertPmg = false;
   const t0 = Date.now();
-  console.log('🔄 Iniciando fetch...');
+  console.log('🔄 Iniciando fetch paralelo...');
 
   const allCandidates = C.sh;
+  allCandidates.forEach(name => { DATA[name] = []; });
 
-  // Fase 1: carrega vendas_v1 e META_OUTROS rapidamente — renderiza já
-  await Promise.all([loadVendasV1(), loadMetaOutros()]);
+  // Dispara as 3 fetches SIMULTANEAMENTE
+  const promiseV1   = loadVendasV1();
+  const promiseMeta = loadMetaOutros();
+  const promisePmg  = loadAllFromAppsScript();
+
+  // Mostra banner de atualização imediatamente
+  document.getElementById('updating-banner').style.display = 'block';
+  document.getElementById('updating-overlay').style.display = 'block';
+
+  // Fase 1: assim que vendas_v1 + META_OUTROS chegarem — renderiza parcial
+  await Promise.all([promiseV1, promiseMeta]);
   console.log(`⏱️ Fase 1: ${Date.now()-t0}ms | v1=${VENDAS_V1.length} meta=${Object.keys(META_OUTROS).length}`);
 
-  // Renderiza com dados parciais (canais já funcionam)
-  allCandidates.forEach(name => { DATA[name] = []; });
   btn.classList.remove('ld');
   const now0a = new Date();
   const pad0a = n => String(n).padStart(2,'0');
@@ -885,12 +909,8 @@ async function loadData(){
   document.getElementById('vtabs-bar').style.display = 'block';
   buildTabs(); render();
 
-  // Mostra banner enquanto carrega PMG (Fase 2)
-  document.getElementById('updating-banner').style.display = 'block';
-  document.getElementById('updating-overlay').style.display = 'block';
-
-  // Fase 2: carrega export PMG em background — re-renderiza quando terminar
-  const exportData = await loadAllFromAppsScript();
+  // Fase 2: assim que PMG chegar (já estava rodando em paralelo)
+  const exportData = await promisePmg;
   console.log(`⏱️ Fase 2 (PMG): ${Date.now()-t0}ms | export=${!!exportData}`);
 
   const shOriginal = ['ADRIANO','ALEX','AUGUSTO','BRUNO','DEBORAH','DENIS','DOUGLAS','JOYCE','LEANDRO','LUCAS','MARCELO','MATHEUS','NOA','RAFAEL','ROSANE','SAMARA','THAIS','WESLEY','ALINE','CINTIA','KEULLY'];
@@ -1348,9 +1368,9 @@ function _render(){
   const totValPeriod = v1Period.reduce((a,r) => a + (r.fat||0), 0);
 
   const kpisRow1 = [
-    {ico:'💰', lbl:'Faturamento',  sub:'Período',          val:fBRL(totValPeriod), kc:'var(--blue2)'},
+    {ico:'💰', lbl:'Faturamento',  sub:'Período',          val:fBRL(totValPeriod), kc:'var(--blue2)', bellId:'kpi-bell-fat'},
     {ico:'💼', lbl:'Carteira',     sub:'Grupos Comerciais', val:cntCar,             kc:'var(--g-car)'},
-    {ico:'📞', lbl:'Contato',      sub:'Grupos Comerciais', val:cntCon,             kc:'var(--blue)'},
+    {ico:'📞', lbl:'Contato',      sub:'Grupos Comerciais', val:cntCon,             kc:'var(--blue)',  bellId:'kpi-bell-pmg'},
     {ico:'🛒', lbl:'Venda',        sub:'Grupos Comerciais', val:cntVen,             kc:'var(--g-pos)'},
     {ico:'❌', lbl:'Não Venda',    sub:'Grupos Comerciais', val:cntNav,             kc:'var(--red)'},
   ];
@@ -1364,7 +1384,10 @@ function _render(){
     <div class="kpi" style="--kc:${k.kc}">
       <div class="kpi-bar"></div>
       <div class="kpi-ico">${k.ico}</div>
-      <div class="kpi-lbl">${k.lbl}</div>
+      <div class="kpi-lbl" style="display:flex;align-items:center;gap:6px">
+        ${k.lbl}
+        ${k.bellId ? `<span id="${k.bellId}" onclick="saveSettAndLoad()" title="Há dados novos — clique para atualizar" style="display:none;align-items:center;gap:4px;background:#ff6b35;color:#fff;font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;cursor:pointer;animation:bellPulse 1.5s ease-in-out infinite;white-space:nowrap">🔔 Atualizar</span>` : ''}
+      </div>
       <div class="kpi-val${k.lg?' lg':k.sm?' sm':''}">${k.val}</div>
       ${k.sub ? `<div style="font-size:10px;color:var(--text3);margin-top:2px">${k.sub}</div>` : ''}
       ${k.sub2 ? `<div style="font-size:13px;color:var(--text3);margin-top:3px;font-family:'Roboto Mono',monospace">${k.sub2}</div>` : ''}
@@ -1444,29 +1467,29 @@ function _render(){
         const barCol = pct==null?'#888':pct>=100?'#1a8c4e':pct>=70?'#b87a00':'#cc1a1a';
         return `<div onclick="setGroup('${grp}')" style="width:364px;flex-shrink:0;background:${bg};border:2px solid ${border};border-top:4px solid ${type==='fat'?'#1a3a8c':'#1a8c4e'};border-radius:12px;padding:10px 26px;cursor:pointer;transition:all .2s;display:flex;flex-direction:column;justify-content:center;text-align:left;box-shadow:0 4px 16px rgba(26,58,140,.10);position:relative;overflow:hidden">
           <img src="${AVACY_LOGO}" style="position:absolute;top:8px;right:12px;height:28px;opacity:.18;pointer-events:none;filter:grayscale(30%)" alt="">
-          <div style="font-size:11px;font-weight:700;color:${labelC};text-transform:uppercase;letter-spacing:.8px;margin-bottom:3px">${lbl}</div>
-          <div style="font-size:22px;font-weight:800;color:${textC};font-family:'Roboto Mono',monospace;line-height:1.1">${valStr}</div>
-          ${metaStr?`<div style="font-size:10px;color:${metaC};margin-top:2px;font-family:'Roboto Mono',monospace">Meta: ${metaStr}</div>`:''}
+          <div style="font-size:13px;font-weight:700;color:${labelC};text-transform:uppercase;letter-spacing:.8px;margin-bottom:9px">${lbl}</div>
+          <div style="font-size:26px;font-weight:800;color:${textC};font-family:'Montserrat',sans-serif;line-height:1.1">${valStr}</div>
+          ${metaStr?`<div style="font-size:12px;color:${metaC};margin-top:6px;font-family:'Montserrat',sans-serif">Meta: ${metaStr}</div>`:''}
           ${pct!=null?`
-            <div style="margin-top:5px">
+            <div style="margin-top:15px">
               <div style="height:4px;background:var(--gray);border-radius:3px;overflow:hidden">
                 <div style="height:100%;width:${Math.min(pct,100)}%;background:${barCol};border-radius:3px;transition:width .8s"></div>
               </div>
-              <div style="font-size:11px;font-weight:800;color:${pctC};margin-top:2px;font-family:'Roboto Mono',monospace">${pct}% da meta</div>
+              <div style="font-size:13px;font-weight:800;color:${pctC};margin-top:6px;font-family:'Montserrat',sans-serif">${pct}% da meta</div>
             </div>`:''
           }
         </div>`;
       }
       return `<div onclick="setGroup('${grp}')" style="width:240px;flex-shrink:0;background:${bg};border:2px solid ${border};border-radius:10px;border-top:4px solid ${type==='fat'?'#1a3a8c':'#1a8c4e'};padding:8px 14px;cursor:pointer;transition:all .2s;text-align:left;box-shadow:${isActive?'0 2px 8px rgba(26,58,140,.15)':'none'}">
-        <div style="font-size:9px;font-weight:700;color:${labelC};text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px">${lbl}</div>
-        <div style="font-size:17px;font-weight:800;color:${textC};font-family:'Roboto Mono',monospace;line-height:1.1">${valStr}</div>
-        ${metaStr?`<div style="font-size:9px;color:${metaC};margin-top:2px">Meta: ${metaStr}</div>`:''}
+        <div style="font-size:11px;font-weight:700;color:${labelC};text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px">${lbl}</div>
+        <div style="font-size:20px;font-weight:800;color:${textC};font-family:'Montserrat',sans-serif;line-height:1.1">${valStr}</div>
+        ${metaStr?`<div style="font-size:11px;color:${metaC};margin-top:2px;font-family:'Montserrat',sans-serif">Meta: ${metaStr}</div>`:''}
         ${pct!=null?`
           <div style="margin-top:5px">
             <div style="height:3px;background:var(--gray);border-radius:3px;overflow:hidden">
               <div style="height:100%;width:${Math.min(pct,100)}%;background:${col};border-radius:3px;transition:width .8s"></div>
             </div>
-            <div style="font-size:9px;font-weight:700;color:${pctC};margin-top:3px;font-family:'Roboto Mono',monospace">${pct}% da meta</div>
+            <div style="font-size:11px;font-weight:700;color:${pctC};margin-top:3px;font-family:'Montserrat',sans-serif">${pct}% da meta</div>
           </div>`:''
         }
       </div>`;
@@ -1545,7 +1568,7 @@ function _render(){
 
   // ── GRÁFICO + FUNIL lado a lado
   mc.innerHTML+=`
-  <div style="display:grid;grid-template-columns:1fr 260px 260px;gap:18px;margin-bottom:22px">
+  <div style="display:grid;grid-template-columns:minmax(0,1.4fr) 220px 220px minmax(0,1fr);gap:18px;margin-bottom:22px">
     <div class="ch-card">
       <div class="stitle" style="--al:var(--blue)">Evolução Diária — Contatos e Positivados</div>
       <div class="ch-wrap" style="height:280px"><canvas id="cevo"></canvas></div>
@@ -1558,10 +1581,14 @@ function _render(){
       <div class="stitle" style="--al:#cc1a1a">Motivos Não Venda</div>
       <div id="motivos-wrap" style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:6px;padding-top:8px"></div>
     </div>
+    <div class="ch-card" style="display:flex;flex-direction:column">
+      <div class="stitle" style="--al:#1a8c4e">Faturamento por Canal</div>
+      <div style="flex:1;position:relative;min-height:200px"><canvas id="cfatcanal"></canvas></div>
+    </div>
   </div>`;
 
-  // Vendor breakdown (PMG)
-  if(ACTIVE==='all' && !CHANNELS.includes(GROUP)){
+  // Vendor breakdown (PMG) — sempre mostra todos, com transparência para não selecionados
+  if(!CHANNELS.includes(GROUP)){
     const MINI_ORDER = [
       { key:'em_carteira', lbl:'Carteira',   col:'#b87a00' },
       { key:'em_contato',  lbl:'Contato',    col:'#1a3a8c' },
@@ -1573,13 +1600,16 @@ function _render(){
       mc.innerHTML+=`<div class="stitle" style="--al:#a855f7;margin-bottom:14px">Performance por Vendedor</div>
       <div class="vnd-g">${sortedV.map(v=>{
         const s=vs[v]||{},ini=v.slice(0,2).toUpperCase();
+        const isHighlighted = !VENDOR_HIGHLIGHT || VENDOR_HIGHLIGHT === v;
+        const dimStyle = !isHighlighted ? 'opacity:0.28;filter:grayscale(50%);transform:scale(0.97);' : '';
+        const borderCol = VENDOR_HIGHLIGHT===v ? 'var(--red)' : 'var(--blue)';
         const atFatStr = s.atFat!=null
           ? `<span style="color:${s.atFat>=100?'#1a8c4e':s.atFat>=70?'#b87a00':'#cc1a1a'};font-weight:700">${s.atFat}%</span> fat`
           : 'sem meta fat';
         const atPosStr = s.atPos!=null
           ? `<span style="color:${s.atPos>=100?'#1a8c4e':s.atPos>=70?'#b87a00':'#cc1a1a'};font-weight:700">${s.atPos}%</span> posit`
           : '';
-        return `<div class="vnd" data-vendor="${v}" onclick="swV('${v}')" style="transition:all .25s;border-left:4px solid ${ACTIVE===v?'var(--red)':'var(--blue)'}">
+        return `<div class="vnd" data-vendor="${v}" onclick="swV('${v}')" style="transition:all .25s;border-left:4px solid ${borderCol};${dimStyle}">
           <div class="vnd-h">
             <div class="vnd-av">${ini}</div>
             <div>
@@ -1688,11 +1718,119 @@ function _render(){
     </div>
   </div>`;
 
+  // ── Fat por canal para o gráfico de barras
+  const allSubGroups = [
+    { lbl:'FARMER',    pmg: getFarmerVendors(),   ch: null },
+    { lbl:'DEVELOPER', pmg: DEVELOPER_VENDORS,    ch: null },
+    { lbl:'CLOSER',    pmg: null, ch: getChannelVendors('closer')  },
+    { lbl:'MARTINS',   pmg: null, ch: getChannelVendors('martins') },
+    { lbl:'RCA',       pmg: null, ch: getChannelVendors('rca')     },
+    { lbl:'KA',        pmg: null, ch: getChannelVendors('ka')      },
+    { lbl:'HAVA',      pmg: null, ch: getChannelVendors('hava')    },
+  ];
+  const fatCanais = allSubGroups.map(g => {
+    const rows = v1Period.filter(r => {
+      if (g.ch) return g.ch.includes(r.nomeVend);
+      return (g.pmg||[]).includes(r.vendor);
+    });
+    return { lbl: g.lbl, fat: rows.reduce((a,r)=>a+(r.fat||0),0) };
+  }).filter(g => g.fat > 0).sort((a,b) => b.fat - a.fat);
+
   requestAnimationFrame(()=>{
     buildEvo(dKeys,byD);
     buildFunil(cntCar, cntCon, cntVen, cntNav, total);
-    buildMotivos(rowsByDate);  // Não Venda filtra por DATA ENVIO
+    buildMotivos(rowsByDate);
+    buildFatCanais(fatCanais);
     drawTbl(rawForTable, false, v1PeriodMap);
+    updateAlertBells();
+  });
+}
+
+// ── FAT POR CANAL — barras horizontais ──────────────────
+let CH_CANAL = null;
+function buildFatCanais(fatCanais) {
+  const ctx = document.getElementById('cfatcanal'); if (!ctx) return;
+  if (CH_CANAL) { CH_CANAL.destroy(); CH_CANAL = null; }
+  if (!fatCanais.length) {
+    ctx.style.display = 'none';
+    ctx.parentElement.innerHTML += `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text3);font-size:12px;font-weight:600">Sem dados no período</div>`;
+    return;
+  }
+
+  const colors = {
+    'FARMER':   '#1a3a8c',
+    'DEVELOPER':'#2452b8',
+    'CLOSER':   '#7c3aed',
+    'MARTINS':  '#1a8c4e',
+    'RCA':      '#b87a00',
+    'KA':       '#cc1a1a',
+    'HAVA':     '#0891b2',
+  };
+
+  const maxVal = fatCanais[0].fat;
+  const labels = fatCanais.map(g => g.lbl);
+  const values = fatCanais.map(g => g.fat);
+  const bkgs   = fatCanais.map(g => colors[g.lbl] || '#1a3a8c');
+
+  CH_CANAL = new Chart(ctx.getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        data: values,
+        backgroundColor: bkgs.map(c => c + 'cc'),
+        borderColor: bkgs,
+        borderWidth: 2,
+        borderRadius: 6,
+        barThickness: 22,
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      layout: { padding: { right: 90 } },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => ' ' + new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0}).format(ctx.raw)
+          }
+        }
+      },
+      scales: {
+        x: {
+          display: false,
+          grid: { display: false },
+        },
+        y: {
+          grid: { display: false },
+          ticks: { font: { family: "'Montserrat', sans-serif", size: 11, weight: '700' }, color: '#0f1f4a' }
+        }
+      }
+    },
+    plugins: [{
+      id: 'valueLabels',
+      afterDatasetsDraw(chart) {
+        const { ctx: c, data, scales: { x, y } } = chart;
+        c.save();
+        c.font = "700 11px 'Roboto Mono', monospace";
+        c.fillStyle = '#0f1f4a';
+        c.textBaseline = 'middle';
+        c.textAlign = 'left';
+        data.datasets[0].data.forEach((val, i) => {
+          const xPos = x.getPixelForValue(val) + 8;
+          const yPos = y.getPixelForValue(i);
+          const fmt = val >= 1e6
+            ? 'R$' + (val/1e6).toFixed(1) + 'M'
+            : val >= 1e3
+              ? 'R$' + (val/1e3).toFixed(0) + 'K'
+              : new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0}).format(val);
+          c.fillText(fmt, xPos, yPos);
+        });
+        c.restore();
+      }
+    }]
   });
 }
 
@@ -1781,18 +1919,14 @@ function buildFunil(cntCar, cntCon, cntVen, cntNav, total){
   if (!el) return;
 
   const stages = [
-    { lbl:'Carteira',  val:cntCar, col:'#b87a00', ico:'💼' },
-    { lbl:'Contato',   val:cntCon, col:'#1a3a8c', ico:'📞' },
-    { lbl:'Venda',     val:cntVen, col:'#1a8c4e', ico:'🛒' },
-    { lbl:'Não Venda', val:cntNav, col:'#cc1a1a', ico:'❌' },
+    { lbl:'Carteira',  val:cntCar, col:'#b87a00', ico:'💼', pctVal: 100 },
+    { lbl:'Contato',   val:cntCon, col:'#1a3a8c', ico:'📞', pctVal: cntCar > 0 ? Math.round((cntCon / cntCar) * 100) : 0 },
+    { lbl:'Venda',     val:cntVen, col:'#1a8c4e', ico:'🛒', pctVal: cntCar > 0 ? Math.round((cntVen / cntCar) * 100) : 0 },
+    { lbl:'Não Venda', val:cntNav, col:'#cc1a1a', ico:'❌', pctVal: cntCar > 0 ? Math.round((cntNav / cntCar) * 100) : 0 },
   ];
 
-  const max = Math.max(...stages.map(s=>s.val), 1);
-
   el.innerHTML = stages.map((s, i) => {
-    const pct  = total > 0 ? ((s.val / total) * 100).toFixed(0) : 0;
-    const barW = ((s.val / max) * 100).toFixed(0);
-    // Funil: cada estágio é um pouco mais estreito
+    const barW = Math.min(s.pctVal, 100);
     const marginPx = i * 10;
     return `<div style="margin:0 ${marginPx}px;transition:margin .4s">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
@@ -1802,7 +1936,7 @@ function buildFunil(cntCar, cntCon, cntVen, cntNav, total){
         </div>
         <div style="display:flex;align-items:center;gap:8px">
           <span style="font-family:'Roboto Mono',monospace;font-size:18px;font-weight:700;color:var(--text)">${s.val}</span>
-          <span style="font-family:'Roboto Mono',monospace;font-size:10px;color:var(--text3)">${pct}%</span>
+          <span style="font-family:'Roboto Mono',monospace;font-size:10px;color:var(--text3)">${s.pctVal}%</span>
         </div>
       </div>
       <div style="height:8px;background:var(--gray);border-radius:6px;overflow:hidden">
@@ -2008,7 +2142,7 @@ function swV(v){
 function setGroupChip(g){
   GROUP = g;
   ACTIVE = 'all';
-  // Atualiza chips visuais
+  VENDOR_HIGHLIGHT = null;
   ['all','farmer','developer','closer','martins','rca','ka','hava'].forEach(id => {
     const el = document.getElementById('gchip-' + id);
     if (el) el.classList.toggle('active', id === g);
@@ -2018,7 +2152,7 @@ function setGroupChip(g){
 function setGroup(g){
   GROUP = g;
   ACTIVE = 'all';
-  // Sincroniza chips visuais
+  VENDOR_HIGHLIGHT = null;
   ['all','farmer','developer','closer','martins','rca','ka','hava'].forEach(id => {
     const el = document.getElementById('gchip-' + id);
     if (el) el.classList.toggle('active', id === g);
@@ -2026,22 +2160,14 @@ function setGroup(g){
   buildTabs(); render();
 }
 function swV(v){
-  // Toggle: se já está ativo, volta para 'all'
-  const next = ACTIVE === v ? 'all' : v;
-  ACTIVE = next;
-  document.querySelectorAll('.vtab').forEach(t=>t.classList.toggle('active',t.textContent===next));
-  render();
-  // Aplica transparência APÓS render (pois render regenera os cards)
-  requestAnimationFrame(() => {
-    document.querySelectorAll('.vnd[data-vendor]').forEach(card => {
-      const isSelected = next === 'all' || card.dataset.vendor === next;
-      card.style.opacity        = isSelected ? '1'    : '0.35';
-      card.style.transform      = isSelected ? ''     : 'scale(0.97)';
-      card.style.filter         = isSelected ? ''     : 'grayscale(40%)';
-      card.style.borderLeftColor= isSelected ? 'var(--red)' : 'var(--blue)';
-    });
-  });
-}(v){return new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0}).format(v);}
+  // Toggle: clica de novo no mesmo → deseleciona
+  const next = VENDOR_HIGHLIGHT === v ? null : v;
+  VENDOR_HIGHLIGHT = next;
+  ACTIVE = next || 'all'; // filtra dados do dash pelo vendedor selecionado
+  document.querySelectorAll('.vtab').forEach(t=>t.classList.toggle('active', t.textContent===(next||'all')));
+  render(); // render já usa VENDOR_HIGHLIGHT para aplicar transparência inline nos cards
+}
+function fBRL(v){return new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0}).format(v);}
 function setLoad(){document.getElementById('mc').innerHTML=`<div class="st-box"><div class="spin"></div><p>Carregando dados da planilha…</p></div>`;}
 function showErr(m){const e=document.getElementById('err');e.innerHTML=m+'<br><small style="font-weight:400;opacity:.8">Verifique: Arquivo → Compartilhar → "Qualquer pessoa com o link pode ver"</small>';e.classList.add('on');}
 function hideErr(){document.getElementById('err').classList.remove('on');}
