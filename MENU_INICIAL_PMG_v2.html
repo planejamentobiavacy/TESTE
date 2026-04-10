@@ -582,6 +582,16 @@ const allSellers = [...sellers, ...sellersDev, ...sellersHava];
 // Estrutura: [{ vendedor, senha, substituto, de, ate }]
 let senhasFerias = [];
 
+// Restaura férias embutidas pelo Salvar Painel (converte ISO string → Date)
+if (typeof window.__PMG_FERIAS__ !== 'undefined' && Array.isArray(window.__PMG_FERIAS__) && window.__PMG_FERIAS__.length > 0) {
+  senhasFerias = window.__PMG_FERIAS__.map(r => ({
+    vendedor:   (r.vendedor   || '').toUpperCase(),
+    substituto: (r.substituto || '').toUpperCase(),
+    de:  r.de  ? new Date(r.de)  : null,
+    ate: r.ate ? new Date(r.ate) : null,
+  })).filter(r => r.de && r.ate && !isNaN(r.de.getTime()) && !isNaN(r.ate.getTime()));
+}
+
 // Retorna a senha efetiva de um seller (considerando férias)
 function getEffectivePassword(seller) {
   const hoje = new Date();
@@ -2606,12 +2616,20 @@ function _buildPainel(sourceHTML) {
 
     // 3. Injeta dados no SENTINEL — único ponto seguro que não existe em nenhuma string JS
     const SENTINEL = '<!--__PMG_PRELOAD_SLOT__-->';
+    // Serializa senhasFerias convertendo Date para ISO string
+    const senhasFeriasSerial = senhasFerias.map(r => ({
+      vendedor: r.vendedor,
+      substituto: r.substituto,
+      de:  r.de  ? r.de.toISOString()  : null,
+      ate: r.ate ? r.ate.toISOString() : null,
+    }));
     const dataScript = '<scr' + 'ipt>(function(){window.__PMG_DATA__='
       + dataSnapshot
       + ';window.__PMG_META__=' + JSON.stringify(sellerMeta)
       + ';window.__PMG_METAP__=' + JSON.stringify(sellerMetaPosit)
       + ';window.__PMG_3ULT__=' + JSON.stringify(ultComprasData)
       + ';window.__PMG_CADASTRO__=' + JSON.stringify(cadastroData)
+      + ';window.__PMG_FERIAS__=' + JSON.stringify(senhasFeriasSerial)
       + ';window.__PMG_DATE__=\'' + dateFmt + '\';window.__PMG_IS_PAINEL__=true;})()</scr' + 'ipt>';
     sourceHTML = sourceHTML.replace(SENTINEL, dataScript);
 
