@@ -367,7 +367,7 @@
   <div class="grid-wrapper" id="__adminBlock__">
     <!-- Instrução -->
     <p style="text-align:center;font-family:'Montserrat',sans-serif;font-size:13px;font-weight:600;color:var(--text-mid);margin-bottom:28px;line-height:1.7;">
-      Importe o CSV base e clique em <strong>💾 Salvar Painel</strong> para distribuir aos vendedores
+      Importe o CSV base → clique em <strong>📊 Importar G.Sheets</strong> → clique em <strong>💾 Salvar Painel</strong>
     </p>
 
     <!-- Botões de ação centralizados -->
@@ -2609,9 +2609,8 @@ function _startVendasV1Monitor() {
 function _applyVendasV1(rows) {
   if (!activeSeller) return;
 
-  // Persiste dados atuais antes de qualquer modificação (preserva contatos)
-  if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; }
-  saveSellerData(activeSeller.csvName);
+  // Persiste dados atuais IMEDIATAMENTE antes de qualquer modificação
+  _flushPendingData();
 
   // Monta diarioMap igual ao parseDiario
   const diarioMap = {};
@@ -3171,6 +3170,14 @@ function scheduleSave() {
   saveTimer = setTimeout(() => saveSellerData(activeSeller.csvName), 800);
 }
 
+// Força save imediato cancelando o debounce — chame antes de qualquer operação crítica
+function _flushPendingData() {
+  if (!activeSeller) return;
+  clearTimeout(saveTimer);
+  saveTimer = null;
+  saveSellerData(activeSeller.csvName);
+}
+
 // ─────────────────────────────────────────────
 // SALVAR PAINEL DO VENDEDOR — Google Sheets
 // ─────────────────────────────────────────────
@@ -3236,6 +3243,9 @@ document.getElementById('btnVendedorSalvar').addEventListener('click', async () 
           return rowStr;
         }).join('§')
       };
+
+      // Persiste dados locais imediatamente antes do reload
+      _flushPendingData();
 
       // Guarda payload e vendedor ativo no sessionStorage e recarrega (hard reload)
       try {
