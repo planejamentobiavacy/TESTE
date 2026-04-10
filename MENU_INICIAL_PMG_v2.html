@@ -2765,9 +2765,22 @@ function _processSheetsData(data, btn, statusEl) {
     'EM CONTATO':  'EM CONTATO',
     'DIAS CONTATO':'DIAS_CONTATO',
     'NÃO VENDA':   'NÃO VENDA',
+    'NAO VENDA':   'NÃO VENDA',
+    'NÂO VENDA':   'NÃO VENDA',
     'MOTIVO':      'MOTIVO (NÃO VENDA)',
     'OBSERVAÇÕES': 'OBSERVAÇÕES (PREENCHIMENTO LIVRE)',
+    'OBSERVACOES': 'OBSERVAÇÕES (PREENCHIMENTO LIVRE)',
   };
+
+  // Função para encontrar valor no sheetsRow ignorando variações de acentuação
+  function getSheetVal(sheetsRow, key) {
+    if (sheetsRow[key] !== undefined) return sheetsRow[key];
+    // Tenta normalizar: remove acentos e compara
+    const norm = s => s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().trim();
+    const keyNorm = norm(key);
+    const found = Object.keys(sheetsRow).find(k => norm(k) === keyNorm);
+    return found !== undefined ? sheetsRow[found] : undefined;
+  }
 
   let totalLinhas = 0;
 
@@ -2778,11 +2791,17 @@ function _processSheetsData(data, btn, statusEl) {
     if (!sheetsRows || sheetsRows.length === 0) return;
     if (!csvData[seller.csvName]) csvData[seller.csvName] = [];
 
+    // Filtra apenas a linha mais recente por GC (última no array = mais recente)
+    const latestByGC = {};
     sheetsRows.forEach(sheetsRow => {
       const grpRaw = String(sheetsRow['GRUPO COMERCIAL'] || '').trim();
       const grpN   = parseFloat(grpRaw.replace(',', '.'));
       const codGC  = isNaN(grpN) ? grpRaw : String(Math.round(grpN));
       if (!codGC) return;
+      latestByGC[codGC] = sheetsRow; // sobrescreve — fica com a última
+    });
+
+    Object.entries(latestByGC).forEach(([codGC, sheetsRow]) => {
 
       let existing = csvData[seller.csvName].find(r => {
         const g = (r['GRUPO_  COMERCIAL'] || '').trim();
@@ -2793,7 +2812,7 @@ function _processSheetsData(data, btn, statusEl) {
       if (existing) {
         Object.keys(CAMPOS_MAP).forEach(sheetCol => {
           const csvCol = CAMPOS_MAP[sheetCol];
-          let v = sheetsRow[sheetCol];
+          let v = getSheetVal(sheetsRow, sheetCol);
           if (v === undefined || v === '') return;
           if (csvCol === 'DIAS_CONTATO') v = _cleanDias(v);
           existing[csvCol] = v;
@@ -2812,7 +2831,8 @@ function _processSheetsData(data, btn, statusEl) {
         newRow['CARTEIRA']          = 'SIM';
         Object.keys(CAMPOS_MAP).forEach(sheetCol => {
           const csvCol = CAMPOS_MAP[sheetCol];
-          if (sheetsRow[sheetCol] !== undefined && sheetsRow[sheetCol] !== '') newRow[csvCol] = sheetsRow[sheetCol];
+          const v = getSheetVal(sheetsRow, sheetCol);
+          if (v !== undefined && v !== '') newRow[csvCol] = v;
         });
         csvData[seller.csvName].push(newRow);
       }
