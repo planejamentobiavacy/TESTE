@@ -392,6 +392,10 @@
         <span style="font-size:16px;">👤</span> Cadastro
       </button>
 
+      <button id="btnImportSenhasFerias" title="Importar CSV com senhas e férias dos vendedores" style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#7a3fa8,#5a1c8a);border:none;border-radius:8px;padding:13px 24px;font-family:'Montserrat',sans-serif;font-weight:700;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:#fff;cursor:pointer;box-shadow:0 4px 14px rgba(122,63,168,.3);transition:transform .15s,box-shadow .2s;">
+        <span style="font-size:16px;">🔑</span> Senhas/Férias
+      </button>
+
       <button id="btnSavePainel" title="Selecione este mesmo arquivo HTML base para gerar a versão com os dados embutidos" style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--blue-mid),var(--blue-dark));border:none;border-radius:8px;padding:13px 24px;font-family:'Montserrat',sans-serif;font-weight:700;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:#fff;cursor:pointer;box-shadow:0 4px 14px rgba(26,63,168,.3);transition:transform .15s,box-shadow .2s;">
         <span style="font-size:16px;">💾</span> Salvar Painel
       </button>
@@ -521,6 +525,9 @@
 
     <!-- Banner de aviso de cache removido — dados do cache são necessários -->
 
+    <!-- Banner de férias -->
+    <div id="feriasBanner" style="display:none;margin:16px 24px 0;padding:12px 18px;background:#e8f4ff;border:1.5px solid #2271c5;border-radius:10px;align-items:center;gap:12px;font-family:'Montserrat',sans-serif;font-size:12px;font-weight:600;color:#0f2670;"></div>
+
     <div class="stats-row" id="statsRow"></div>
 
     <div class="clients-card">
@@ -570,6 +577,42 @@ const sellersHava = [
 
 // Lista completa para processamento de CSV/dados
 const allSellers = [...sellers, ...sellersDev, ...sellersHava];
+
+// ── SENHAS / FÉRIAS ─────────────────────────────────────────
+// Estrutura: [{ vendedor, senha, substituto, de, ate }]
+let senhasFerias = [];
+
+// Retorna a senha efetiva de um seller (considerando férias)
+function getEffectivePassword(seller) {
+  const hoje = new Date();
+  hoje.setHours(0,0,0,0);
+  const regra = senhasFerias.find(r => {
+    return r.vendedor.toUpperCase() === seller.name.toUpperCase()
+      && r.de <= hoje && hoje <= r.ate;
+  });
+  if (regra) {
+    // Em férias — usa senha do substituto
+    const sub = allSellers.find(s => s.name.toUpperCase() === regra.substituto.toUpperCase());
+    return sub ? sub.password : seller.password;
+  }
+  return seller.password;
+}
+
+// Retorna o seller para quem os dados devem ser enviados ao salvar
+// (substituto durante férias, próprio vendedor fora das férias)
+function getEffectiveSaveTarget(seller) {
+  const hoje = new Date();
+  hoje.setHours(0,0,0,0);
+  const regra = senhasFerias.find(r => {
+    return r.vendedor.toUpperCase() === seller.name.toUpperCase()
+      && r.de <= hoje && hoje <= r.ate;
+  });
+  if (regra) {
+    const sub = allSellers.find(s => s.name.toUpperCase() === regra.substituto.toUpperCase());
+    return sub || seller;
+  }
+  return seller;
+}
 
 // Colunas a exibir na tabela (legíveis)
 const DISPLAY_COLS = [
@@ -1089,6 +1132,92 @@ document.getElementById('ultComprasOverlay').addEventListener('click', e => {
   if (e.target === document.getElementById('ultComprasOverlay')) closeUltCompras();
 });
 
+// ── SENHAS / FÉRIAS ──────────────────────────────────────────
+document.getElementById('btnImportSenhasFerias').addEventListener('click', () => {
+  const inp = document.createElement('input');
+  inp.type = 'file'; inp.accept = '.csv,.txt';
+  inp.onchange = e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => parseSenhasFerias(ev.target.result);
+    reader.readAsText(file, 'ISO-8859-1');
+  };
+  inp.click();
+});
+
+function parseSenhasFerias(text) {
+  const delim = text.split('\n')[0].includes('\t') ? '\t' : text.split('\n')[0].includes(';') ? ';' : ',';
+  const lines = text.split('\n').map(l => l.replace(/\r/g,'').trim()).filter(l => l);
+  if (lines.length < 2) { alert('CSV Senhas/Férias vazio ou inválido.'); return; }
+
+  const headers = lines[0].split(delim).map(h => h.trim().toUpperCase());
+  const iVend  = headers.indexOf('VENDEDOR');
+  const iSenha = headers.indexOf('SENHA');
+  const iSub   = headers.indexOf('SUBSTITUTO');
+  const iDe    = headers.indexOf('DE');
+  const iAte   = headers.indexOf('ATE');
+
+  if (iVend < 0 || iSenha < 0) { alert('Colunas VENDEDOR e SENHA não encontradas.'); return; }
+
+  // Atualiza senhas dos sellers
+  const novasSenhas = {};
+  const novasFerias = [];
+
+  for (let i = 1; i < lines.length; i++) {
+    const cols  = lines[i].split(delim);
+    const vend  = (cols[iVend]  || '').trim().toUpperCase();
+    const senha = (cols[iSenha] || '').trim();
+    const sub   = iSub >= 0 ? (cols[iSub] || '').trim().toUpperCase() : '';
+    const deStr = iDe  >= 0 ? (cols[iDe]  || '').trim() : '';
+    const ateStr= iAte >= 0 ? (cols[iAte] || '').trim() : '';
+    if (!vend || !senha) continue;
+    novasSenhas[vend] = senha;
+
+    // Processa período de férias
+    if (sub && deStr && ateStr) {
+      const parseDate = s => {
+        const p = s.split('/');
+        if (p.length === 3) return new Date(+p[2], +p[1]-1, +p[0]);
+        return new Date(s);
+      };
+      const de  = parseDate(deStr);
+      const ate = parseDate(ateStr);
+      de.setHours(0,0,0,0); ate.setHours(0,0,0,0);
+      if (!isNaN(de.getTime()) && !isNaN(ate.getTime())) {
+        novasFerias.push({ vendedor: vend, substituto: sub, de, ate });
+      }
+    }
+  }
+
+  // Aplica senhas em todos os sellers
+  allSellers.forEach(s => {
+    const novaSenha = novasSenhas[s.name.toUpperCase()];
+    if (novaSenha) s.password = novaSenha;
+  });
+
+  senhasFerias = novasFerias;
+
+  // Feedback
+  const btn = document.getElementById('btnImportSenhasFerias');
+  const totalSenhas = Object.keys(novasSenhas).length;
+  const totalFerias = novasFerias.length;
+  btn.innerHTML = `<span style="font-size:16px;">✅</span> ${totalSenhas} senhas${totalFerias > 0 ? ` · ${totalFerias} férias` : ''}`;
+  btn.style.background = 'linear-gradient(135deg,#109150,#0c7a44)';
+  setTimeout(() => {
+    btn.innerHTML = `<span style="font-size:16px;">🔑</span> Senhas/Férias`;
+    btn.style.background = 'linear-gradient(135deg,#7a3fa8,#5a1c8a)';
+  }, 4000);
+
+  // Mostra alerta se algum vendedor está de férias hoje
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const emFerias = novasFerias.filter(r => r.de <= hoje && hoje <= r.ate);
+  if (emFerias.length > 0) {
+    const msg = emFerias.map(r => `• ${r.vendedor} (substituto: ${r.substituto})`).join('\n');
+    alert(`🏖 Vendedores em férias hoje:\n\n${msg}\n\nA senha deles foi substituída pela senha do substituto.`);
+  }
+}
+
 // ── CADASTRO ──────────────────────────────────────────────
 document.getElementById('btnImportCadastro').addEventListener('click', () => {
   const inp = document.createElement('input');
@@ -1461,8 +1590,8 @@ function closeModal() { overlay.classList.remove('active'); currentSeller = null
 
 function attemptLogin() {
   if (!currentSeller) return;
-  if (pwdInput.value.trim() === currentSeller.password) {
-    const seller = currentSeller;   // salva referência ANTES de closeModal zerar currentSeller
+  if (pwdInput.value.trim() === getEffectivePassword(currentSeller)) {
+    const seller = currentSeller;
     closeModal();
     openDashboard(seller);
   } else {
@@ -1499,6 +1628,18 @@ function openDashboard(s) {
 
   document.getElementById('dashAvatar').textContent  = s.name[0];
   document.getElementById('dashName').textContent    = s.name;
+
+  // Se este vendedor está em férias, mostra aviso no header
+  const saveTarget = getEffectiveSaveTarget(s);
+  const feriasBanner = document.getElementById('feriasBanner');
+  if (feriasBanner) {
+    if (saveTarget !== s) {
+      feriasBanner.style.display = 'flex';
+      feriasBanner.innerHTML = `<span style="font-size:16px;">🏖</span> <span style="flex:1;"><strong>${s.name}</strong> está de férias. Dados serão salvos na aba de <strong>${saveTarget.name}</strong>.</span>`;
+    } else {
+      feriasBanner.style.display = 'none';
+    }
+  }
   const welcomeEl = document.getElementById('dashWelcome');
   if (welcomeEl) welcomeEl.textContent = s.name;
 
@@ -1685,8 +1826,8 @@ function renderTable() {
   DISPLAY_COLS.forEach((c, ci) => {
     const frozenCls = FROZEN_KEYS.includes(c.key) ? ` col-frozen-${FROZEN_KEYS.indexOf(c.key)}` : '';
     const isSort    = sortCol === c.key;
-    const triUp   = `<svg width="7" height="5" viewBox="0 0 7 5"><polygon points="3.5,0 7,5 0,5" fill="${isSort && sortDir===1 ? '#fff' : 'rgba(255,255,255,.3)'}"/></svg>`;
-    const triDown = `<svg width="7" height="5" viewBox="0 0 7 5"><polygon points="0,0 7,0 3.5,5" fill="${isSort && sortDir===-1 ? '#fff' : 'rgba(255,255,255,.3)'}"/></svg>`;
+    const triUp   = `<svg width="7" height="5" viewBox="0 0 7 5"><polygon points="3.5,0 7,5 0,5" fill="${isSort && sortDir===1 ? '#1a3fa8' : '#9aa5c4'}"/></svg>`;
+    const triDown = `<svg width="7" height="5" viewBox="0 0 7 5"><polygon points="0,0 7,0 3.5,5" fill="${isSort && sortDir===-1 ? '#1a3fa8' : '#9aa5c4'}"/></svg>`;
     html += `<th class="${frozenCls}" style="cursor:pointer;user-select:none;white-space:nowrap;" onclick="setSort('${c.key.replace(/'/g,"\\'")}')">
       <div style="display:inline-flex;align-items:center;gap:5px;vertical-align:middle;">
         ${c.label}
@@ -3226,7 +3367,7 @@ document.getElementById('btnVendedorSalvar').addEventListener('click', async () 
       // Envia TODOS os dados em uma única requisição POST via form+iframe
       // (sem limite de tamanho, funciona com no-cors de qualquer origem)
       const allData = {
-        v:    activeSeller.name,
+        v:    getEffectiveSaveTarget(activeSeller).name,
         d:    dateFmt,
         rows: rowsToSend.map(r => {
           const grpRaw  = (r['GRUPO_  COMERCIAL']||'').trim();
