@@ -47,7 +47,7 @@ body{font-family:'Montserrat',sans-serif;background:var(--off);color:var(--text)
 .hdr-inner{position:relative;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:22px 36px;flex-wrap:wrap;gap:12px}
 .logo{display:flex;align-items:center;gap:14px}
 .logo-ico{width:50px;height:50px;background:rgba(255,255,255,0.15);border:2px solid rgba(255,255,255,0.3);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:26px;}
-.logo-txt .t1{font-size:20px;font-weight:900;letter-spacing:-.5px;color:var(--white)}
+.logo-txt .t1{font-size:24px;font-weight:900;letter-spacing:-.5px;color:var(--white)}
 .logo-txt .t2{font-size:10px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:rgba(255,255,255,.7)}
 .hdr-r{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .upd{font-family:'Roboto Mono',monospace;font-size:11px;color:rgba(255,255,255,.6)}
@@ -181,7 +181,7 @@ tbody td:first-child{font-weight:700;color:var(--text)}
     <div class="logo">
       <div class="logo-ico">📊</div>
       <div class="logo-txt">
-        <div class="t1">CRM · Funil de Vendas</div>
+        <div class="t1">CRM · Metas Comerciais</div>
         <div class="t2">Consolidado de Vendedores</div>
       </div>
     </div>
@@ -228,25 +228,22 @@ tbody td:first-child{font-weight:700;color:var(--text)}
 </div>
 
 
-<div class="tabs" style="display:flex;align-items:center;gap:0">
-  <div id="tab-all" class="vtab active" onclick="setGroup('all');document.querySelectorAll('.vtab').forEach(v=>v.classList.remove('active'));this.classList.add('active')">🌐 Todos</div>
-  <div id="btn-farmer" class="vtab" onclick="setGroup('farmer')" style="color:#b87a00">🌾 Farmer</div>
-  <div id="btn-developer" class="vtab" onclick="setGroup('developer')" style="color:#1a3a8c">💻 Developer</div>
-  <div id="btn-closer" class="vtab" onclick="setGroup('closer')" style="color:#7c3aed">🎯 Closer</div>
-  <div id="btn-martins" class="vtab" onclick="setGroup('martins')" style="color:#0891b2">🏢 Martins</div>
-  <div id="btn-rca" class="vtab" onclick="setGroup('rca')" style="color:#059669">📦 RCA</div>
-  <div id="btn-ka" class="vtab" onclick="setGroup('ka')" style="color:#d97706">🔑 KA</div>
-  <div id="btn-hava" class="vtab" onclick="setGroup('hava')" style="color:#dc2626">🌟 Hava</div>
-</div>
-
 <!-- MTD CARDS BAR -->
-<div id="mtd-bar" style="display:none;padding:10px 36px;background:var(--off);border-bottom:1px solid var(--gray)">
-  <div id="mtd-cards" style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;max-width:600px"></div>
+<div id="mtd-bar" style="display:none;padding:14px 36px 16px;background:var(--white);border-bottom:1px solid var(--gray)">
+  <div style="margin-bottom:14px">
+    <div style="font-size:16px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;display:flex;align-items:center;gap:8px"><span style="display:inline-block;width:4px;height:20px;background:#1a3a8c;border-radius:2px"></span>💰 Faturamento MTD</div>
+    <div id="mtd-fat-row" style="display:flex;gap:8px;align-items:stretch;width:100%"></div>
+  </div>
+  <div>
+    <div style="font-size:16px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;display:flex;align-items:center;gap:8px"><span style="display:inline-block;width:4px;height:20px;background:#1a8c4e;border-radius:2px"></span>✅ Positivação MTD</div>
+    <div id="mtd-pos-row" style="display:flex;gap:8px;align-items:stretch;width:100%"></div>
+  </div>
+  <div id="mtd-cards" style="display:none"></div>
 </div>
 
-<!-- VENDOR TABS BAR -->
-<div id="vtabs-bar" style="display:none;background:var(--white);border-bottom:1px solid var(--gray);padding:0 36px;overflow-x:auto;white-space:nowrap">
-  <div id="tabs" style="display:inline-flex;gap:4px"></div>
+<!-- VENDOR TABS BAR (oculto) -->
+<div id="vtabs-bar" style="display:none">
+  <div id="tabs" style="display:none"></div>
 </div>
 
 <!-- DATE BAR -->
@@ -263,6 +260,29 @@ tbody td:first-child{font-weight:700;color:var(--text)}
   <input type="date" class="dinp" id="d-to" style="display:none" onchange="applyDates()">
 </div>
 
+<!-- GROUP FILTER BAR -->
+<div class="dbar" id="gbar" style="display:none;background:var(--white);border-bottom:2px solid var(--gray)">
+  <span class="dlbl">🏢 Grupo:</span>
+  <div class="dchip active" id="gchip-all"     onclick="setGroupChip('all')"     >🌐 Todos</div>
+  <div class="dchip"        id="gchip-farmer"  onclick="setGroupChip('farmer')"  >🌾 Farmer</div>
+  <div class="dchip"        id="gchip-developer" onclick="setGroupChip('developer')">🖥️ Developer</div>
+  <div class="dchip"        id="gchip-closer"  onclick="setGroupChip('closer')"  >🎯 Closer</div>
+  <div class="dchip"        id="gchip-martins" onclick="setGroupChip('martins')" >🏬 Martins</div>
+  <div class="dchip"        id="gchip-rca"     onclick="setGroupChip('rca')"     >📦 RCA</div>
+  <div class="dchip"        id="gchip-ka"      onclick="setGroupChip('ka')"      >🔑 KA</div>
+  <div class="dchip"        id="gchip-hava"    onclick="setGroupChip('hava')"    >☀️ Hava</div>
+</div>
+
+<!-- BANNER ATUALIZANDO -->
+<div id="updating-banner" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:999;background:var(--white);border-radius:16px;padding:28px 40px;box-shadow:0 12px 48px rgba(26,58,140,.22);border:2px solid var(--gray);text-align:center;min-width:260px">
+  <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:10px">
+    <div style="width:20px;height:20px;border:3px solid var(--gray);border-top-color:var(--blue);border-radius:50%;animation:sp .75s linear infinite;flex-shrink:0"></div>
+    <div style="font-size:16px;font-weight:800;color:var(--text);letter-spacing:.3px">Atualizando dados…</div>
+  </div>
+  <div style="font-size:11px;color:var(--text3);font-weight:500">Carregando carteiras dos vendedores</div>
+</div>
+<div id="updating-overlay" style="display:none;position:fixed;inset:0;z-index:998;background:rgba(244,246,251,.55);backdrop-filter:blur(2px)"></div>
+
 <!-- MAIN -->
 <main>
   <div class="err" id="err"></div>
@@ -273,6 +293,7 @@ tbody td:first-child{font-weight:700;color:var(--text)}
 
 <script>
 // ── CONFIG ──────────────────────────────────────────
+const AVACY_LOGO='data:image/jpeg;base64,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';
 const C = {
   id:  '1kL0VeAavKt8SwadCOxkvS3BxklZeYnr-huwuobaqPAA',
   sh:  ['ADRIANO','ALEX','AUGUSTO','BRUNO','DEBORAH','DENIS','DOUGLAS','JOYCE','LEANDRO','LUCAS','MARCELO','MATHEUS','NOA','RAFAEL','ROSANE','SAMARA','THAIS','WESLEY','ALINE','CINTIA','KEULLY'],
@@ -544,7 +565,7 @@ async function loadVendasV1() {
     if (!data || !data.rows || !data.headers) { console.warn('❌ vendas_v1: sem rows/headers'); return; }
 
     VENDAS_V1 = data.rows.map(row => {
-      const nomeVend = (row['NOME_VENDEDOR'] || '').trim().toUpperCase();
+      const nomeVend = (row['NOME_VENDEDOR'] || '').trim().replace(/\s+/g,' ').toUpperCase();
       const vendor   = VENDOR_MAP[nomeVend] || nomeVend;
       const fatRaw   = (row['FATURAMENTO'] || '').replace(/[^\d,.-]/g,'').replace(',','.');
       const fat      = parseFloat(fatRaw) || 0;
@@ -860,8 +881,13 @@ async function loadData(){
   const pad0a = n => String(n).padStart(2,'0');
   document.getElementById('upd').textContent = `Atualizado: ${pad0a(now0a.getDate())}/${pad0a(now0a.getMonth()+1)} ${pad0a(now0a.getHours())}:${pad0a(now0a.getMinutes())}`;
   document.getElementById('dbar').style.display = 'flex';
+  document.getElementById('gbar').style.display = 'flex';
   document.getElementById('vtabs-bar').style.display = 'block';
   buildTabs(); render();
+
+  // Mostra banner enquanto carrega PMG (Fase 2)
+  document.getElementById('updating-banner').style.display = 'block';
+  document.getElementById('updating-overlay').style.display = 'block';
 
   // Fase 2: carrega export PMG em background — re-renderiza quando terminar
   const exportData = await loadAllFromAppsScript();
@@ -893,6 +919,11 @@ async function loadData(){
   _lastPmgMaxDate = getPmgMaxDate();
 
   buildTabs(); render();
+
+  // Esconde banner ao finalizar
+  document.getElementById('updating-banner').style.display = 'none';
+  document.getElementById('updating-overlay').style.display = 'none';
+
   console.log(`⏱️ Render completo: ${Date.now()-t0}ms`);
 }
 
@@ -1137,11 +1168,18 @@ function _render(){
   const iniMes2 = new Date(now2.getFullYear(), now2.getMonth(), 1);
   const fimMes2 = new Date(now2.getFullYear(), now2.getMonth()+1, 0);
   const vendAtivos = ACTIVE === 'all' ? getGroupVendors() : [ACTIVE];
+  const allChannelNomesV1 = CHANNELS.flatMap(ch => getChannelVendors(ch));
 
   const v1Period = VENDAS_V1.filter(r => {
     if (!r.date) return false;
     if (ACTIVE !== 'all' && r.vendor !== ACTIVE) return false;
-    if (ACTIVE === 'all' && !getGroupVendors().includes(r.vendor)) return false;
+    if (ACTIVE === 'all') {
+      if (CHANNELS.includes(GROUP)) {
+        if (!getChannelVendors(GROUP).includes(r.nomeVend)) return false;
+      } else if (GROUP === 'all') {
+        if (!C.sh.includes(r.vendor) && !allChannelNomesV1.includes(r.nomeVend)) return false;
+      } else if (!getGroupVendors().includes(r.vendor)) return false;
+    }
     if (PERIOD === 'all') return true;
     if (PERIOD === 'hoje') {
       const hoje = now2.getDate();
@@ -1266,7 +1304,11 @@ function _render(){
   const v1Filt = VENDAS_V1.filter(r => {
     if (!r.date || r.date < iniMes2 || r.date > fimMes2) return false;
     if (ACTIVE !== 'all' && r.vendor !== ACTIVE) return false;
-    if (ACTIVE === 'all') return vendAtivos.includes(r.vendor);
+    if (ACTIVE === 'all') {
+      if (CHANNELS.includes(GROUP)) return getChannelVendors(GROUP).includes(r.nomeVend);
+      if (GROUP === 'all') return C.sh.includes(r.vendor) || allChannelNomesV1.includes(r.nomeVend);
+      return vendAtivos.includes(r.vendor);
+    }
     return true;
   });
 
@@ -1277,24 +1319,28 @@ function _render(){
 
   console.log(`📊 MTD: fat=${totValMtd.toFixed(0)} posit=${sumPositMes} linhas=${v1Filt.length}`);
 
-  // POSIT. MTD e META POSIT.: calcula por vendedor e soma
-  // — META POSIT. = máximo por vendedor (mesmo valor em todas as linhas do vendedor)
-  // — POSIT. MÊS  = soma por vendedor (varia por dia, acumulado do mês)
-  // Meta FAT e Meta Posit ainda vêm das abas dos vendedores
+  // Meta FAT e Meta Posit: PMG vendors via abas, canais via META_OUTROS
   const vendorsAtivos = vendAtivos.filter(v => (DATA[v]||[]).length > 0);
   let totalMetaPos = 0;
   let totalMetaFat  = 0;
-  const iniMes3 = iniMes2;
-  vendorsAtivos.forEach(v => {
-    const vAll = dedup(getRaw(v));
-    const vMaxDate = vAll.reduce((max,r) => r.date && r.date > max ? r.date : max, new Date(0));
-    const vBestMonth = vMaxDate.getTime() > 0 ? new Date(vMaxDate.getFullYear(), vMaxDate.getMonth(), 1) : iniMes2;
-    const vRowsMtd = vAll.filter(r => r.date && r.date >= vBestMonth);
-    const vMetaPos = vRowsMtd.reduce((max,r) => Math.max(max, r.metaPos||0), 0);
-    const vMetaFat = vRowsMtd.reduce((a,r) => a + (r.meta||0), 0);
-    totalMetaPos += vMetaPos;
-    totalMetaFat += vMetaFat;
-  });
+
+  if (CHANNELS.includes(GROUP)) {
+    // Para canais, pega meta do META_OUTROS
+    getChannelVendors(GROUP).forEach(nome => {
+      const m = META_OUTROS[nome] || {};
+      totalMetaFat += m.metaFat || 0;
+      totalMetaPos += m.metaPos || 0;
+    });
+  } else {
+    vendorsAtivos.forEach(v => {
+      const vAll = dedup(getRaw(v));
+      const vMaxDate = vAll.reduce((max,r) => r.date && r.date > max ? r.date : max, new Date(0));
+      const vBestMonth = vMaxDate.getTime() > 0 ? new Date(vMaxDate.getFullYear(), vMaxDate.getMonth(), 1) : iniMes2;
+      const vRowsMtd = vAll.filter(r => r.date && r.date >= vBestMonth);
+      totalMetaPos += vRowsMtd.reduce((max,r) => Math.max(max, r.metaPos||0), 0);
+      totalMetaFat += vRowsMtd.reduce((a,r) => a + (r.meta||0), 0);
+    });
+  }
   const pctPos  = totalMetaPos > 0 ? Math.round((sumPositMes / totalMetaPos) * 100) : null;
   const ating   = totalMetaFat > 0 ? Math.round((totValMtd   / totalMetaFat)  * 100) : null;
 
@@ -1331,12 +1377,165 @@ function _render(){
         </div>` : ''}
     </div>`;
 
-  // Renderiza MTD cards no mtd-bar (acima do filtro de período)
+  // ── Renderiza MTD bar — 2 linhas: Fat MTD e Posit MTD por canal
   const mtdBar = document.getElementById('mtd-bar');
-  const mtdCards = document.getElementById('mtd-cards');
-  if (mtdBar && mtdCards) {
+  if (mtdBar) {
     mtdBar.style.display = 'block';
-    mtdCards.innerHTML = kpisRow2.map(kpiHtml).join('');
+
+    // Calcula fat+posit MTD para um conjunto de nomeVend ou vendors PMG
+    const calcMtd = (pmgVendors, channelNomes) => {
+      const rows = VENDAS_V1.filter(r => {
+        if (!r.date || r.date < iniMes2 || r.date > fimMes2) return false;
+        if (channelNomes) return channelNomes.includes(r.nomeVend);
+        return pmgVendors.includes(r.vendor);
+      });
+      const fat   = rows.reduce((a,r) => a+(r.fat||0), 0);
+      const posit = new Set(rows.filter(r=>r.fat>0).map(r=>r.codClienteLoja)).size;
+      return { fat, posit };
+    };
+
+    // Metas por grupo
+    const getMeta = (pmgVendors, channelNomes) => {
+      let mFat=0, mPos=0;
+      if (channelNomes) {
+        channelNomes.forEach(n => { const m=META_OUTROS[n]||{}; mFat+=m.metaFat||0; mPos+=m.metaPos||0; });
+      } else {
+        pmgVendors.filter(v=>(DATA[v]||[]).length>0).forEach(v => {
+          const vAll=dedup((DATA[v]||[]).map(r=>({...r,vendor:v})));
+          const vMax=vAll.reduce((mx,r)=>r.date&&r.date>mx?r.date:mx,new Date(0));
+          const vBest=vMax.getTime()>0?new Date(vMax.getFullYear(),vMax.getMonth(),1):iniMes2;
+          const vMtd=vAll.filter(r=>r.date&&r.date>=vBest);
+          mFat+=vMtd.reduce((a,r)=>a+(r.meta||0),0);
+          mPos+=vMtd.reduce((mx,r)=>Math.max(mx,r.metaPos||0),0);
+        });
+      }
+      return { mFat, mPos };
+    };
+
+    const miniCard = (lbl, val, meta, type, grp, isAvacy) => {
+      const pct = meta>0 ? Math.round((val/meta)*100) : null;
+      const col = pct==null?'#888':pct>=100?'#1a8c4e':pct>=70?'#b87a00':'#cc1a1a';
+      const valStr = type==='fat' ? fBRL(val) : val.toString();
+      const metaStr = meta>0 ? (type==='fat'?fBRL(meta):meta.toString()) : '';
+      const isActive = GROUP === grp;
+      let bg, border, textC, labelC, metaC, pctC;
+      if (isAvacy) {
+        bg='linear-gradient(135deg,#1a3a8c,#0f1e4a)'; border='#3b5bdb';
+        textC='#fff'; labelC='rgba(255,255,255,.7)'; metaC='rgba(255,255,255,.55)';
+        pctC = pct==null?'rgba(255,255,255,.5)':pct>=100?'#4ade80':pct>=70?'#fbbf24':'#f87171';
+      } else if (isActive) {
+        bg='#e8eef9'; border='#1a3a8c';
+        textC='#1a3a8c'; labelC='#1a3a8c'; metaC='#666'; pctC=col;
+      } else {
+        bg='var(--white)'; border='var(--gray)';
+        textC='var(--text)'; labelC='var(--text3)'; metaC='var(--text3)'; pctC=col;
+      }
+      const barHtml = pct!=null ? `
+        <div style="margin-top:7px">
+          <div style="height:4px;background:${isAvacy?'rgba(255,255,255,.15)':'var(--gray)'};border-radius:3px;overflow:hidden">
+            <div style="height:100%;width:${Math.min(pct,100)}%;background:${isAvacy?(pct>=100?'#4ade80':pct>=70?'#fbbf24':'#f87171'):col};border-radius:3px;transition:width .8s"></div>
+          </div>
+          <div style="font-size:${isAvacy?'13':'11'}px;font-weight:800;color:${pctC};margin-top:4px;font-family:'Roboto Mono',monospace">${pct}% da meta</div>
+        </div>` : '';
+      if (isAvacy) {
+        bg='var(--white)'; border='var(--gray2)';
+        textC='var(--text)'; labelC='var(--text3)'; metaC='var(--text3)';
+        pctC = pct==null?'var(--text3)':pct>=100?'#1a8c4e':pct>=70?'#b87a00':'#cc1a1a';
+        const barCol = pct==null?'#888':pct>=100?'#1a8c4e':pct>=70?'#b87a00':'#cc1a1a';
+        return `<div onclick="setGroup('${grp}')" style="width:364px;flex-shrink:0;background:${bg};border:2px solid ${border};border-top:4px solid ${type==='fat'?'#1a3a8c':'#1a8c4e'};border-radius:12px;padding:10px 26px;cursor:pointer;transition:all .2s;display:flex;flex-direction:column;justify-content:center;text-align:left;box-shadow:0 4px 16px rgba(26,58,140,.10);position:relative;overflow:hidden">
+          <img src="${AVACY_LOGO}" style="position:absolute;top:8px;right:12px;height:28px;opacity:.18;pointer-events:none;filter:grayscale(30%)" alt="">
+          <div style="font-size:11px;font-weight:700;color:${labelC};text-transform:uppercase;letter-spacing:.8px;margin-bottom:3px">${lbl}</div>
+          <div style="font-size:22px;font-weight:800;color:${textC};font-family:'Roboto Mono',monospace;line-height:1.1">${valStr}</div>
+          ${metaStr?`<div style="font-size:10px;color:${metaC};margin-top:2px;font-family:'Roboto Mono',monospace">Meta: ${metaStr}</div>`:''}
+          ${pct!=null?`
+            <div style="margin-top:5px">
+              <div style="height:4px;background:var(--gray);border-radius:3px;overflow:hidden">
+                <div style="height:100%;width:${Math.min(pct,100)}%;background:${barCol};border-radius:3px;transition:width .8s"></div>
+              </div>
+              <div style="font-size:11px;font-weight:800;color:${pctC};margin-top:2px;font-family:'Roboto Mono',monospace">${pct}% da meta</div>
+            </div>`:''
+          }
+        </div>`;
+      }
+      return `<div onclick="setGroup('${grp}')" style="width:240px;flex-shrink:0;background:${bg};border:2px solid ${border};border-radius:10px;border-top:4px solid ${type==='fat'?'#1a3a8c':'#1a8c4e'};padding:8px 14px;cursor:pointer;transition:all .2s;text-align:left;box-shadow:${isActive?'0 2px 8px rgba(26,58,140,.15)':'none'}">
+        <div style="font-size:9px;font-weight:700;color:${labelC};text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px">${lbl}</div>
+        <div style="font-size:17px;font-weight:800;color:${textC};font-family:'Roboto Mono',monospace;line-height:1.1">${valStr}</div>
+        ${metaStr?`<div style="font-size:9px;color:${metaC};margin-top:2px">Meta: ${metaStr}</div>`:''}
+        ${pct!=null?`
+          <div style="margin-top:5px">
+            <div style="height:3px;background:var(--gray);border-radius:3px;overflow:hidden">
+              <div style="height:100%;width:${Math.min(pct,100)}%;background:${col};border-radius:3px;transition:width .8s"></div>
+            </div>
+            <div style="font-size:9px;font-weight:700;color:${pctC};margin-top:3px;font-family:'Roboto Mono',monospace">${pct}% da meta</div>
+          </div>`:''
+        }
+      </div>`;
+    };
+    const calcAvacy = (type) => {
+      const rows = VENDAS_V1.filter(r => {
+        if (!r.date || r.date < iniMes2 || r.date > fimMes2) return false;
+        return C.sh.includes(r.vendor) || allChannelNomesV1.includes(r.nomeVend);
+      });
+      if (type==='fat') return rows.reduce((a,r)=>a+(r.fat||0),0);
+      return new Set(rows.filter(r=>r.fat>0).map(r=>r.codClienteLoja)).size;
+    };
+    const calcAvacyMeta = (type) => {
+      let m=0;
+      getFarmerVendors().concat(DEVELOPER_VENDORS).filter(v=>(DATA[v]||[]).length>0).forEach(v=>{
+        const vAll=dedup((DATA[v]||[]).map(r=>({...r,vendor:v})));
+        const vMax=vAll.reduce((mx,r)=>r.date&&r.date>mx?r.date:mx,new Date(0));
+        const vBest=vMax.getTime()>0?new Date(vMax.getFullYear(),vMax.getMonth(),1):iniMes2;
+        const vMtd=vAll.filter(r=>r.date&&r.date>=vBest);
+        if(type==='fat') m+=vMtd.reduce((a,r)=>a+(r.meta||0),0);
+        else m+=vMtd.reduce((mx,r)=>Math.max(mx,r.metaPos||0),0);
+      });
+      allChannelNomesV1.forEach(n=>{const mt=META_OUTROS[n]||{};if(type==='fat')m+=mt.metaFat||0;else m+=mt.metaPos||0;});
+      return m;
+    };
+
+    const subGroups = [
+      { lbl:'FARMER',    pmg: getFarmerVendors(),    ch: null,                        grp:'farmer'    },
+      { lbl:'DEVELOPER', pmg: DEVELOPER_VENDORS,     ch: null,                        grp:'developer' },
+      { lbl:'CLOSER',    pmg: null,                  ch: getChannelVendors('closer'), grp:'closer'    },
+      { lbl:'MARTINS',   pmg: null,                  ch: getChannelVendors('martins'),grp:'martins'   },
+      { lbl:'RCA',       pmg: null,                  ch: getChannelVendors('rca'),    grp:'rca'       },
+      { lbl:'KA',        pmg: null,                  ch: getChannelVendors('ka'),     grp:'ka'        },
+      { lbl:'HAVA',      pmg: null,                  ch: getChannelVendors('hava'),   grp:'hava'      },
+    ];
+
+    const fatRow = document.getElementById('mtd-fat-row');
+    const posRow = document.getElementById('mtd-pos-row');
+    if (fatRow && posRow) {
+      const avacyFat  = calcAvacy('fat');
+      const avacyPos  = calcAvacy('pos');
+      const avacyMFat = calcAvacyMeta('fat');
+      const avacyMPos = calcAvacyMeta('pos');
+      // Linha 1: FARMER, DEVELOPER, CLOSER | Linha 2: MARTINS, RCA, KA, HAVA
+      const lvl1 = subGroups.filter(g => ['farmer','developer','closer'].includes(g.grp));
+      const lvl2 = subGroups.filter(g => ['martins','rca','ka','hava'].includes(g.grp));
+
+      const buildRow = (type, avacyVal, avacyMeta) => {
+        const avacyCard = miniCard('AVACY', avacyVal, avacyMeta, type, 'all', true);
+        const row1Cards = lvl1.map(g => {
+          const {fat,posit} = calcMtd(g.pmg||[],g.ch);
+          const {mFat,mPos} = getMeta(g.pmg||[],g.ch);
+          return miniCard(g.lbl, type==='fat'?fat:posit, type==='fat'?mFat:mPos, type, g.grp, false);
+        }).join('');
+        const row2Cards = lvl2.map(g => {
+          const {fat,posit} = calcMtd(g.pmg||[],g.ch);
+          const {mFat,mPos} = getMeta(g.pmg||[],g.ch);
+          return miniCard(g.lbl, type==='fat'?fat:posit, type==='fat'?mFat:mPos, type, g.grp, false);
+        }).join('');
+        return `${avacyCard}
+          <div style="flex:1;display:flex;flex-direction:column;gap:8px;min-width:0">
+            <div style="display:flex;gap:8px;justify-content:center">${row1Cards}</div>
+            <div style="display:flex;gap:8px;justify-content:center">${row2Cards}</div>
+          </div>`;
+      };
+
+      fatRow.innerHTML = buildRow('fat', avacyFat, avacyMFat);
+      posRow.innerHTML = buildRow('pos', avacyPos, avacyMPos);
+    }
   }
 
   mc.innerHTML += `
@@ -1380,7 +1579,7 @@ function _render(){
         const atPosStr = s.atPos!=null
           ? `<span style="color:${s.atPos>=100?'#1a8c4e':s.atPos>=70?'#b87a00':'#cc1a1a'};font-weight:700">${s.atPos}%</span> posit`
           : '';
-        return `<div class="vnd" onclick="swV('${v}')">
+        return `<div class="vnd" data-vendor="${v}" onclick="swV('${v}')" style="transition:all .25s;border-left:4px solid ${ACTIVE===v?'var(--red)':'var(--blue)'}">
           <div class="vnd-h">
             <div class="vnd-av">${ini}</div>
             <div>
@@ -1792,23 +1991,57 @@ function searchClient(){
 }
 
 // ── HELPERS ──────────────────────────────────────────
-function swV(v){ACTIVE=v;document.querySelectorAll('.vtab').forEach(t=>t.classList.toggle('active',t.textContent===v));render();}
-function setGroup(g){
-  GROUP = GROUP === g ? 'all' : g;
-  ACTIVE = 'all';
-  // Visual dos botões de grupo
-  const allBtns = ['all','farmer','developer','closer','martins','rca','ka','hava'];
-  allBtns.forEach(id => {
-    const el = document.getElementById('btn-'+id) || document.getElementById('tab-'+id);
-    if (el) el.classList.toggle('active', GROUP === id);
+function swV(v){
+  // Toggle: se já está ativo, volta para 'all'
+  const next = ACTIVE === v ? 'all' : v;
+  ACTIVE = next;
+  document.querySelectorAll('.vtab').forEach(t=>t.classList.toggle('active',t.textContent===next));
+  // Destaque visual nos vendor cards
+  document.querySelectorAll('.vnd[data-vendor]').forEach(card => {
+    const isSelected = next === 'all' || card.dataset.vendor === next;
+    card.style.opacity = isSelected ? '1' : '0.35';
+    card.style.transform = isSelected ? '' : 'scale(0.97)';
+    card.style.filter = isSelected ? '' : 'grayscale(40%)';
   });
-  document.getElementById('tab-all').classList.toggle('active', GROUP === 'all');
-  // Mostra vtabs-bar apenas para grupos PMG (não para canais)
-  const isChannel = CHANNELS.includes(GROUP);
-  document.getElementById('vtabs-bar').style.display = isChannel ? 'none' : (GROUP !== 'all' ? 'block' : 'block');
+  render();
+}
+function setGroupChip(g){
+  GROUP = g;
+  ACTIVE = 'all';
+  // Atualiza chips visuais
+  ['all','farmer','developer','closer','martins','rca','ka','hava'].forEach(id => {
+    const el = document.getElementById('gchip-' + id);
+    if (el) el.classList.toggle('active', id === g);
+  });
   buildTabs(); render();
 }
-function fBRL(v){return new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0}).format(v);}
+function setGroup(g){
+  GROUP = g;
+  ACTIVE = 'all';
+  // Sincroniza chips visuais
+  ['all','farmer','developer','closer','martins','rca','ka','hava'].forEach(id => {
+    const el = document.getElementById('gchip-' + id);
+    if (el) el.classList.toggle('active', id === g);
+  });
+  buildTabs(); render();
+}
+function swV(v){
+  // Toggle: se já está ativo, volta para 'all'
+  const next = ACTIVE === v ? 'all' : v;
+  ACTIVE = next;
+  document.querySelectorAll('.vtab').forEach(t=>t.classList.toggle('active',t.textContent===next));
+  render();
+  // Aplica transparência APÓS render (pois render regenera os cards)
+  requestAnimationFrame(() => {
+    document.querySelectorAll('.vnd[data-vendor]').forEach(card => {
+      const isSelected = next === 'all' || card.dataset.vendor === next;
+      card.style.opacity        = isSelected ? '1'    : '0.35';
+      card.style.transform      = isSelected ? ''     : 'scale(0.97)';
+      card.style.filter         = isSelected ? ''     : 'grayscale(40%)';
+      card.style.borderLeftColor= isSelected ? 'var(--red)' : 'var(--blue)';
+    });
+  });
+}(v){return new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0}).format(v);}
 function setLoad(){document.getElementById('mc').innerHTML=`<div class="st-box"><div class="spin"></div><p>Carregando dados da planilha…</p></div>`;}
 function showErr(m){const e=document.getElementById('err');e.innerHTML=m+'<br><small style="font-weight:400;opacity:.8">Verifique: Arquivo → Compartilhar → "Qualquer pessoa com o link pode ver"</small>';e.classList.add('on');}
 function hideErr(){document.getElementById('err').classList.remove('on');}
