@@ -1764,7 +1764,7 @@ function renderStats(rows) {
   const todosOsDias = new Set();
   let somaContatos  = 0;
   rows.forEach(r => {
-    const dc = (r['DIAS_CONTATO']||'').split(/[;,]/).map(d=>d.trim()).filter(Boolean);
+    const dc = (r['DIAS_CONTATO']||'').split(/[;,-]/).map(d=>d.trim()).filter(Boolean);
     dc.forEach(d => todosOsDias.add(d));
     somaContatos += dc.length;
   });
@@ -1790,7 +1790,7 @@ function renderStats(rows) {
   // Contatos do dia (DIAS_CONTATO contém o dia de hoje)
   const hoje = new Date().getDate();
   const contatosHoje = rows.filter(r => {
-    const dias = (r['DIAS_CONTATO']||'').split(/[;,]/).map(d => parseInt(d.trim(),10));
+    const dias = (r['DIAS_CONTATO']||'').split(/[;,-]/).map(d => parseInt(d.trim(),10));
     return dias.includes(hoje);
   }).length;
 
@@ -2014,7 +2014,7 @@ function renderTable() {
 
         } else if (col.key === 'EM CONTATO') {
           const hoje = new Date().getDate();
-          const diasContato = (row['DIAS_CONTATO']||'').split(/[;,]/).map(d => parseInt(d.trim(),10)).filter(Boolean);
+          const diasContato = (row['DIAS_CONTATO']||'').split(/[;,-]/).map(d => parseInt(d.trim(),10)).filter(Boolean);
           const contatoHoje = diasContato.includes(hoje);
           html += `<td style="padding:4px 8px !important;white-space:nowrap;">
             <div class="contato-btns">
@@ -2321,8 +2321,8 @@ function applyFilters() {
 
       // Colunas com dias separados por ; ou , — ordena pela quantidade
       if (sortCol === 'DIAS_VENDA' || sortCol === 'DIAS_CONTATO') {
-        const an = av ? av.split(/[;,]/).filter(Boolean).length : 0;
-        const bn = bv ? bv.split(/[;,]/).filter(Boolean).length : 0;
+        const an = av ? av.split(/[;,-]/).filter(Boolean).length : 0;
+        const bn = bv ? bv.split(/[;,-]/).filter(Boolean).length : 0;
         return (an - bn) * sortDir;
       }
 
@@ -3165,7 +3165,7 @@ function onContatoBtn(btn) {
 
   const hoje = new Date().getDate();
   const diasAtual = (row['DIAS_CONTATO'] || '').trim();
-  const lista = diasAtual ? diasAtual.split(/[;,]/).map(d => d.trim()).filter(Boolean) : [];
+  const lista = diasAtual ? diasAtual.split(/[;,-]/).map(d => d.trim()).filter(Boolean) : [];
   const jaTemHoje = lista.includes(String(hoje));
 
   if (jaTemHoje) {
