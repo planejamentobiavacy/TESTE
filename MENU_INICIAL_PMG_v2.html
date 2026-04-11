@@ -597,25 +597,26 @@ function getEffectivePassword(seller) {
   const hoje = new Date();
   hoje.setHours(0,0,0,0);
   const regra = senhasFerias.find(r => {
+    const de  = new Date(r.de);  de.setHours(0,0,0,0);
+    const ate = new Date(r.ate); ate.setHours(23,59,59,999);
     return r.vendedor.toUpperCase() === seller.name.toUpperCase()
-      && r.de <= hoje && hoje <= r.ate;
+      && hoje >= de && hoje <= ate;
   });
   if (regra) {
-    // Em férias — usa senha do substituto
     const sub = allSellers.find(s => s.name.toUpperCase() === regra.substituto.toUpperCase());
     return sub ? sub.password : seller.password;
   }
   return seller.password;
 }
 
-// Retorna o seller para quem os dados devem ser enviados ao salvar
-// (substituto durante férias, próprio vendedor fora das férias)
 function getEffectiveSaveTarget(seller) {
   const hoje = new Date();
   hoje.setHours(0,0,0,0);
   const regra = senhasFerias.find(r => {
+    const de  = new Date(r.de);  de.setHours(0,0,0,0);
+    const ate = new Date(r.ate); ate.setHours(23,59,59,999);
     return r.vendedor.toUpperCase() === seller.name.toUpperCase()
-      && r.de <= hoje && hoje <= r.ate;
+      && hoje >= de && hoje <= ate;
   });
   if (regra) {
     const sub = allSellers.find(s => s.name.toUpperCase() === regra.substituto.toUpperCase());
@@ -1170,39 +1171,62 @@ function parseSenhasFerias(text) {
 
   if (iVend < 0 || iSenha < 0) { alert('Colunas VENDEDOR e SENHA não encontradas.'); return; }
 
-  // Atualiza senhas dos sellers
+  // Atualiza senhas e férias
   const novasSenhas = {};
   const novasFerias = [];
 
   for (let i = 1; i < lines.length; i++) {
     const cols  = lines[i].split(delim);
-    const vend  = (cols[iVend]  || '').trim().toUpperCase();
+    const vend  = (cols[iVend]  || '').trim();   // csvName ou name
     const senha = (cols[iSenha] || '').trim();
-    const sub   = iSub >= 0 ? (cols[iSub] || '').trim().toUpperCase() : '';
+    const sub   = iSub >= 0 ? (cols[iSub] || '').trim() : '';
     const deStr = iDe  >= 0 ? (cols[iDe]  || '').trim() : '';
     const ateStr= iAte >= 0 ? (cols[iAte] || '').trim() : '';
     if (!vend || !senha) continue;
-    novasSenhas[vend] = senha;
 
-    // Processa período de férias
+    // Guarda por nome original (csvName ou name) em maiúsculas
+    novasSenhas[vend.toUpperCase()] = senha;
+
+    // Processa período de férias — suporta "6" (só dia), "06/04/2026" ou "2026-04-06"
     if (sub && deStr && ateStr) {
       const parseDate = s => {
+        s = s.trim();
+        // Só número = dia do mês atual
+        if (/^\d{1,2}$/.test(s)) {
+          const hoje = new Date();
+          return new Date(hoje.getFullYear(), hoje.getMonth(), parseInt(s, 10));
+        }
+        // DD/MM/YYYY
         const p = s.split('/');
         if (p.length === 3) return new Date(+p[2], +p[1]-1, +p[0]);
         return new Date(s);
       };
       const de  = parseDate(deStr);
       const ate = parseDate(ateStr);
-      de.setHours(0,0,0,0); ate.setHours(0,0,0,0);
+      de.setHours(0,0,0,0); ate.setHours(23,59,59,999);
       if (!isNaN(de.getTime()) && !isNaN(ate.getTime())) {
-        novasFerias.push({ vendedor: vend, substituto: sub, de, ate });
+        // Encontra o seller pelo csvName ou name
+        const findSeller = str => allSellers.find(s =>
+          s.csvName.toUpperCase() === str.toUpperCase() ||
+          s.name.toUpperCase()    === str.toUpperCase()
+        );
+        const vendSeller = findSeller(vend);
+        const subSeller  = findSeller(sub);
+        if (vendSeller && subSeller) {
+          novasFerias.push({
+            vendedor:   vendSeller.name.toUpperCase(),
+            substituto: subSeller.name.toUpperCase(),
+            de, ate
+          });
+        }
       }
     }
   }
 
-  // Aplica senhas em todos os sellers
+  // Aplica senhas em todos os sellers — CSV usa csvName na coluna VENDEDOR
   allSellers.forEach(s => {
-    const novaSenha = novasSenhas[s.name.toUpperCase()];
+    // Tenta match pelo csvName primeiro, depois pelo name
+    const novaSenha = novasSenhas[s.csvName.toUpperCase()] || novasSenhas[s.name.toUpperCase()];
     if (novaSenha) s.password = novaSenha;
   });
 
