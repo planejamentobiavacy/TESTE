@@ -693,6 +693,30 @@ function buildSellersGrid() {
     });
   };
 
+  // Helper: cria card com badge de férias se aplicável
+  const buildCard = (s, parentGrid) => {
+    const emFerias = senhasFerias.some(r => {
+      const de  = new Date(r.de);  de.setHours(0,0,0,0);
+      const ate = new Date(r.ate); ate.setHours(23,59,59,999);
+      const hoje = new Date(); hoje.setHours(0,0,0,0);
+      return r.vendedor.toUpperCase() === s.name.toUpperCase() && hoje >= de && hoje <= ate;
+    });
+    const card = document.createElement('div');
+    card.className = 'seller-card';
+    card.id = 'card-' + s.name;
+    const badgeFerias = emFerias
+      ? `<div style="position:absolute;top:8px;right:8px;background:#f0a500;color:#fff;font-family:'Montserrat',sans-serif;font-size:9px;font-weight:800;letter-spacing:1px;padding:3px 7px;border-radius:20px;text-transform:uppercase;">🏖 Férias</div>`
+      : '';
+    card.innerHTML = `
+      ${badgeFerias}
+      <div class="avatar" style="${emFerias ? 'background:linear-gradient(135deg,#f0a500,#c47d00);' : ''}">${s.name[0]}</div>
+      <div class="seller-name">${s.name}</div>
+      <button class="card-btn" style="${emFerias ? 'background:linear-gradient(135deg,#f0a500,#c47d00);' : ''}">ACESSAR</button>
+    `;
+    card.addEventListener('click', () => openModal(s));
+    parentGrid.appendChild(card);
+  };
+
   // Seção Farmer
   const labelFarmer = document.createElement('p');
   labelFarmer.className = 'section-label';
@@ -701,14 +725,7 @@ function buildSellersGrid() {
   const gridFarmer = document.createElement('div');
   gridFarmer.className = 'cards-grid';
   grid.appendChild(gridFarmer);
-  sellers.forEach(s => {
-    const card = document.createElement('div');
-    card.className = 'seller-card';
-    card.id = 'card-' + s.name;
-    card.innerHTML = `<div class="avatar">${s.name[0]}</div><div class="seller-name">${s.name}</div><button class="card-btn">ACESSAR</button>`;
-    card.addEventListener('click', () => openModal(s));
-    gridFarmer.appendChild(card);
-  });
+  sellers.forEach(s => buildCard(s, gridFarmer));
 
   // Seção Developer
   const labelDev = document.createElement('p');
@@ -719,14 +736,7 @@ function buildSellersGrid() {
   const gridDev = document.createElement('div');
   gridDev.className = 'cards-grid';
   grid.appendChild(gridDev);
-  sellersDev.forEach(s => {
-    const card = document.createElement('div');
-    card.className = 'seller-card';
-    card.id = 'card-' + s.name;
-    card.innerHTML = `<div class="avatar">${s.name[0]}</div><div class="seller-name">${s.name}</div><button class="card-btn">ACESSAR</button>`;
-    card.addEventListener('click', () => openModal(s));
-    gridDev.appendChild(card);
-  });
+  sellersDev.forEach(s => buildCard(s, gridDev));
 
   // Seção Hava
   const labelHava = document.createElement('p');
@@ -737,14 +747,7 @@ function buildSellersGrid() {
   const gridHava = document.createElement('div');
   gridHava.className = 'cards-grid';
   grid.appendChild(gridHava);
-  sellersHava.forEach(s => {
-    const card = document.createElement('div');
-    card.className = 'seller-card';
-    card.id = 'card-' + s.name;
-    card.innerHTML = `<div class="avatar">${s.name[0]}</div><div class="seller-name">${s.name}</div><button class="card-btn">ACESSAR</button>`;
-    card.addEventListener('click', () => openModal(s));
-    gridHava.appendChild(card);
-  });
+  sellersHava.forEach(s => buildCard(s, gridHava));
 
   return true;
 }
@@ -3408,16 +3411,19 @@ document.getElementById('btnVendedorSalvar').addEventListener('click', async () 
 
       // Envia TODOS os dados em uma única requisição POST via form+iframe
       // (sem limite de tamanho, funciona com no-cors de qualquer origem)
+      const saveTarget = getEffectiveSaveTarget(activeSeller);
+      const isSubstituto = saveTarget !== activeSeller;
+
       const allData = {
-        v:    getEffectiveSaveTarget(activeSeller).name,
-        d:    dateFmt,
+        v:      saveTarget.name,
+        d:      dateFmt,
+        origem: isSubstituto ? activeSeller.name : saveTarget.name, // identifica a carteira de origem
         rows: rowsToSend.map(r => {
           const grpRaw  = (r['GRUPO_  COMERCIAL']||'').trim();
           const grpN    = parseFloat(grpRaw.replace(',','.'));
           const grp     = isNaN(grpN) ? grpRaw : String(Math.round(grpN));
           const fatN    = parseFloat((r['FATURAMENTO']||'0').replace(',','.')) || 0;
-          // Se é substituto (saveTarget != activeSeller), zera META_FAT e META_POSIT
-          const isSubstituto = getEffectiveSaveTarget(activeSeller) !== activeSeller;
+          // Se é substituto, zera META_FAT e META_POSIT
           const metaN    = isSubstituto ? 0 : (parseFloat((r['META FAT']||'0').replace(',','.')) || 0);
           const metaPosit = isSubstituto ? 0 : (activeSeller ? (sellerMetaPosit[activeSeller.csvName] || 0) : 0);
           const rowStr = [
