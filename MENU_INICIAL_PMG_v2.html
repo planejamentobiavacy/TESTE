@@ -3416,8 +3416,10 @@ document.getElementById('btnVendedorSalvar').addEventListener('click', async () 
           const grpN    = parseFloat(grpRaw.replace(',','.'));
           const grp     = isNaN(grpN) ? grpRaw : String(Math.round(grpN));
           const fatN    = parseFloat((r['FATURAMENTO']||'0').replace(',','.')) || 0;
-          const metaN   = parseFloat((r['META FAT']||'0').replace(',','.')) || 0;
-          const metaPosit = activeSeller ? (sellerMetaPosit[activeSeller.csvName] || 0) : 0;
+          // Se é substituto (saveTarget != activeSeller), zera META_FAT e META_POSIT
+          const isSubstituto = getEffectiveSaveTarget(activeSeller) !== activeSeller;
+          const metaN    = isSubstituto ? 0 : (parseFloat((r['META FAT']||'0').replace(',','.')) || 0);
+          const metaPosit = isSubstituto ? 0 : (activeSeller ? (sellerMetaPosit[activeSeller.csvName] || 0) : 0);
           const rowStr = [
             grp,
             (r['NOME_GC']||''),
