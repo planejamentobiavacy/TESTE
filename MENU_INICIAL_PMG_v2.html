@@ -115,8 +115,10 @@
   /* DASHBOARD */
   #dashboard { display:none; position:fixed; inset:0; background:var(--off-white); z-index:300; flex-direction:column; overflow:hidden; }
   #dashboard.active { display:flex; }
-  .dash-header { background:linear-gradient(135deg,var(--blue-dark),var(--blue-mid)); position:sticky; top:0; z-index:20; overflow:visible; }
-  .dash-header-inner { display:flex; align-items:center; justify-content:space-between; padding:8px 20px; position:relative; z-index:10; gap:10px; }
+  .dash-header { background:linear-gradient(135deg,var(--blue-dark),var(--blue-mid)); position:sticky; top:0; z-index:20; overflow:visible; flex-shrink:0; }
+  .dash-body { flex:1; padding:12px 16px 8px; width:100%; display:flex; flex-direction:column; overflow:hidden; min-height:0; }
+  .clients-card { background:var(--white); border-radius:16px; overflow:hidden; box-shadow:0 4px 20px var(--shadow); flex:1; display:flex; flex-direction:column; min-height:0; }
+  .table-scroll { overflow-x:auto; overflow-y:auto; flex:1; min-height:0; }
   .dash-header::before { content:''; position:absolute; top:-40px; right:-40px; width:200px; height:200px; border-radius:50%; background:rgba(255,255,255,.05); z-index:1; pointer-events:none; }
   .dash-brand { font-family:'Montserrat',sans-serif; font-weight:900; font-size:22px; letter-spacing:5px; color:var(--white); }
   .dash-brand span { color:var(--white); }
@@ -126,7 +128,6 @@
   #logoutBtn { position:relative; z-index:10; display:inline-flex !important; align-items:center; gap:6px; background:var(--white) !important; border:2px solid var(--white) !important; border-radius:7px; padding:6px 14px; font-family:'Montserrat',sans-serif; font-weight:800; font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--blue-dark) !important; cursor:pointer; box-shadow:0 3px 12px rgba(0,0,0,.25); flex-shrink:0; }
   #logoutBtn:hover { background:var(--red-light) !important; border-color:var(--red-light) !important; color:var(--white) !important; }
   .dash-header-wave { display:none; }
-  .dash-body { flex:1; padding:12px 16px 8px; max-width:1300px; margin:0 auto; width:100%; display:flex; flex-direction:column; overflow:hidden; }
 
   /* welcome */
   .welcome-card { background:var(--white); border-radius:16px; padding:20px 24px; margin-bottom:20px; box-shadow:0 4px 20px var(--shadow); border-left:5px solid var(--blue-mid); display:flex; align-items:center; gap:16px; }
@@ -147,8 +148,7 @@
   .stat-info .stat-label { font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--text-light); margin-top:3px; }
 
   /* CLIENTS TABLE CARD */
-  .clients-card { background:var(--white); border-radius:16px; overflow:visible; box-shadow:0 4px 20px var(--shadow); flex:1; display:flex; flex-direction:column; min-height:0; }
-  .clients-card-header { background:linear-gradient(135deg,var(--blue-dark),var(--blue-mid)); padding:14px 20px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+  .clients-card-header { background:linear-gradient(135deg,var(--blue-dark),var(--blue-mid)); padding:14px 20px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; flex-shrink:0; }
   .ch-title { font-family:'Montserrat',sans-serif; font-weight:700; font-size:13px; letter-spacing:2px; text-transform:uppercase; color:rgba(255,255,255,.85); }
   .ch-count { background:rgba(255,255,255,.18); border-radius:20px; padding:3px 12px; font-family:'Montserrat',sans-serif; font-weight:800; font-size:12px; color:var(--white); }
 
@@ -166,7 +166,6 @@
   .filter-chip.active { background:var(--blue-mid); border-color:var(--blue-mid); color:var(--white); }
 
   /* table */
-  .table-scroll { overflow-x:auto; overflow-y:auto; flex:1; min-height:0; }
   table { width:100%; border-collapse:separate; border-spacing:0; font-size:12.5px; }
   thead { position:sticky; top:0; z-index:20; }
   thead tr { background:#eef1fb; }
@@ -1822,7 +1821,6 @@ function _updateTheadTop() {
   let style = document.getElementById('__theadTopStyle__');
   if (!style) { style = document.createElement('style'); style.id = '__theadTopStyle__'; document.head.appendChild(style); }
   style.textContent = `
-    .table-scroll { display:block; }
     .table-scroll thead { position:sticky !important; top:0 !important; z-index:15; }
     .table-scroll thead th { background:#eef1fb; }
   `;
