@@ -465,7 +465,7 @@ function todayISO() {
   return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
 }
 function pad(n){ return String(n).padStart(2,'0'); }
-function fmtPct(n){ if(!isFinite(n)||n>=999)return'—'; return n.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'%'; }
+function fmtPct(n){ if(!isFinite(n)||n===null||n===undefined)return'—'; return n.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'%'; }
 function fmtMoney(n){
   if(n>=1e6)return'R$ '+(n/1e6).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'M';
   if(n>=1e3)return'R$ '+(n/1e3).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0})+'k';
