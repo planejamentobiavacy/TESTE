@@ -210,9 +210,25 @@ function updateClock() {
 }
 updateClock();
 
-// ─── JSONP ─────────────────────────────────────────────────────────────────
+// ─── FETCH (com fallback JSONP) ────────────────────────────────────────────
+// Tenta fetch normal primeiro (GitHub Pages / https), fallback para JSONP
+async function fetchJsonp(params) {
+  // Tenta fetch normal com redirect follow
+  try {
+    const url = APPS_URL + '?' + new URLSearchParams(params).toString();
+    const res = await fetch(url, { redirect: 'follow' });
+    if (res.ok) {
+      const text = await res.text();
+      // Apps Script pode retornar JSON ou texto
+      try { return JSON.parse(text); } catch(e) { /* tenta JSONP abaixo */ }
+    }
+  } catch(e) { /* fetch falhou, tenta JSONP */ }
+  // Fallback: JSONP
+  return fetchJsonpLegacy(params);
+}
+
 let _cbIdx = 0;
-function fetchJsonp(params) {
+function fetchJsonpLegacy(params) {
   return new Promise((resolve, reject) => {
     const cbName = '__cb' + (++_cbIdx) + '_' + Date.now();
     const script = document.createElement('script');
@@ -280,11 +296,8 @@ async function loadData() {
     // Atualiza debug se estiver visível
     const dbg = document.getElementById('debug-box');
     if (dbg.style.display !== 'none') {
-    // Atualiza debug se visivel
-    const dbgEl = document.getElementById('debug-box');
-    if (dbgEl.style.display !== 'none') {
-      renderDebug(window._lastVendas, window._lastVendMap, window._lastMeta, window._lastAbas, todayISO());
-    }
+    // Sempre chama renderDebug para salvar dados
+    renderDebug(vendasRows, vendMap, metaPorVend, abasExport, hoje);
     }
 
   } catch(e) {
@@ -501,20 +514,23 @@ function renderChannel(ch, vMap, metaPorVend) {
 
 // ─── DEBUG ─────────────────────────────────────────────────────────────────
 function renderDebug(vendasRows, vendMap, metaPorVend, abasExport, hoje) {
-  const dbg = document.getElementById('debug-box');
-  if (dbg.style.display === 'none') return;
-
-  let txt = `Hoje: ${hoje} | Vendas total: ${vendasRows.length}\n\n`;
-  txt += `── VEND_CANAL (${Object.keys(vendMap).length} vendedores) ──\n`;
-  Object.entries(vendMap).slice(0,8).forEach(([nome,info]) => {
-    txt += `  ${nome} → canal:${info.canal} aba:${info.aba} meta:${fmtMoney(metaPorVend[nome]||0)}\n`;
+  var dbg = document.getElementById('debug-box');
+  var txt = 'Total vendas: ' + vendasRows.length + ' | Hoje: ' + hoje + '\n\n';
+  txt += '── VEND_CANAL (' + Object.keys(vendMap).length + ' vendedores) ──\n';
+  Object.entries(vendMap).slice(0,20).forEach(function(kv) {
+    txt += '  [' + kv[0] + '] canal=' + kv[1].canal + ' aba=' + kv[1].aba + ' meta=' + fmtMoney(metaPorVend[kv[0]]||0) + '\n';
   });
-  txt += `\n── ABAS EXPORT disponíveis ──\n${Object.keys(abasExport).join(', ')}\n`;
-  txt += `\n── METAS calculadas (amostra) ──\n`;
-  Object.entries(metaPorVend).slice(0,10).forEach(([nome,meta]) => {
-    txt += `  ${nome}: ${fmtMoney(meta)}\n`;
+  txt += '\n── ABAS EXPORT: ' + Object.keys(abasExport).join(', ') + '\n';
+  txt += '\n── METAS CALCULADAS ──\n';
+  Object.entries(metaPorVend).forEach(function(kv) {
+    txt += '  [' + kv[0] + '] = ' + fmtMoney(kv[1]) + '\n';
+  });
+  txt += '\n── FARMER vendedores ──\n';
+  Object.entries(vendMap).filter(function(kv){ return kv[1].canal==='FARMER'; }).forEach(function(kv) {
+    txt += '  ' + kv[0] + ' meta=' + fmtMoney(metaPorVend[kv[0]]||0) + '\n';
   });
   dbg.textContent = txt;
+  dbg.style.display = 'block';
 }
 
 // ─── STARS ─────────────────────────────────────────────────────────────────
