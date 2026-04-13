@@ -345,7 +345,7 @@ function calcMetaPorVend(vendMap, abasExport, metaOutrosRows) {
       const linhasVend = metaOutrosRows.filter(r => {
         const data = parseDataEnvio(r[COL_DATA_ENVIO] || '');
         if (data !== maxDataOutros) return false;
-        const nomeRow = (r['NOME_VENDEDOR'] || r['VENDEDOR'] || r['NOME'] || '').toUpperCase().trim();
+        const nomeRow = (r['NOME_VENDEDOR'] || r['VENDEDOR'] || r['NOME'] || '').toUpperCase().trim().replace(/\s+/g,' ');
         // se não tiver nome na linha, soma tudo (aba pode não ter por vendedor)
         return !nomeRow || nomeRow === nomeVend;
       });
@@ -419,7 +419,8 @@ function render(vendasRows, vendMap, metaPorVend, hoje) {
 
   vendasRows.forEach(r => {
     const nome  = (r[COL_VEND] || '').toUpperCase().trim().replace(/\s+/g,' ');
-    const info  = vendMap[nome];
+    const nome_clean = nome.replace(/\s+/g,' ');
+    const info  = vendMap[nome_clean] || vendMap[nome];
     const canal = info?.canal || (r['CANAL'] || '').toUpperCase().trim();
     if (!buckets[canal]) return;
 
@@ -427,17 +428,19 @@ function render(vendasRows, vendMap, metaPorVend, hoje) {
     const posit = toNum(r[COL_POSIT]) || (fat > 0 ? 1 : 0);
     const isDia = (r[COL_DATA] || '').trim().startsWith(hoje);
 
-    if (!buckets[canal][nome]) buckets[canal][nome] = { fatMTD:0, positMTD:0, positDia:0 };
-    buckets[canal][nome].fatMTD   += fat;
-    buckets[canal][nome].positMTD += posit;
-    if (isDia) buckets[canal][nome].positDia += posit;
+    const bkey = nome.replace(/\s+/g,' ');
+    if (!buckets[canal][bkey]) buckets[canal][bkey] = { fatMTD:0, positMTD:0, positDia:0 };
+    buckets[canal][bkey].fatMTD   += fat;
+    buckets[canal][bkey].positMTD += posit;
+    if (isDia) buckets[canal][bkey].positDia += posit;
   });
 
   // Adiciona vendedores que têm meta mas não aparecem em vendas
   Object.entries(vendMap).forEach(([nome, info]) => {
     const canal = info.canal;
     if (!buckets[canal]) return;
-    if (!buckets[canal][nome]) buckets[canal][nome] = { fatMTD:0, positMTD:0, positDia:0 };
+    const n2 = nome.replace(/\s+/g,' ');
+    if (!buckets[canal][n2]) buckets[canal][n2] = { fatMTD:0, positMTD:0, positDia:0 };
   });
 
   // Totais
