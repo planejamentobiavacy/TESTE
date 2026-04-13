@@ -254,13 +254,32 @@ async function loadData() {
     const vendasRows = resVendas.rows || [];
     const hoje = todayISO();
 
+    // Salva globais para o debug
+    window._lastVendas  = vendasRows;
+    window._lastVendMap = vendMap;
+    window._lastMeta    = metaPorVend;
+    window._lastAbas    = abasExport;
+
+    // Salva globais para o debug
+    window._lastVendas  = vendasRows;
+    window._lastVendMap = vendMap;
+    window._lastMeta    = metaPorVend;
+    window._lastAbas    = abasExport;
+
     render(vendasRows, vendMap, metaPorVend, hoje);
 
     document.getElementById('cacheInfo').textContent =
       resExport._fromCache ? '📦 Export do cache' : '🔄 Dados ao vivo';
 
-    // Debug
-    renderDebug(vendasRows, vendMap, metaPorVend, abasExport, hoje);
+    // Atualiza debug se estiver visível
+    const dbg = document.getElementById('debug-box');
+    if (dbg.style.display !== 'none') {
+    // Atualiza debug se visivel
+    const dbgEl = document.getElementById('debug-box');
+    if (dbgEl.style.display !== 'none') {
+      renderDebug(window._lastVendas, window._lastVendMap, window._lastMeta, window._lastAbas, todayISO());
+    }
+    }
 
   } catch(e) {
     console.error(e);
@@ -546,9 +565,16 @@ function setLoading(v,msg){ document.getElementById('loading').style.display=v?'
 function showErr(m){ const e=document.getElementById('err-box'); e.style.display='block'; e.textContent=m; }
 function clearErr(){ document.getElementById('err-box').style.display='none'; }
 function toggleDebug(){
-  const d=document.getElementById('debug-box');
-  d.style.display = d.style.display==='none' ? 'block' : 'none';
-  if(d.style.display==='block') renderDebug(window._lastVendas||[], window._lastVendMap||{}, window._lastMeta||{}, window._lastAbas||{}, todayISO());
+  const d = document.getElementById('debug-box');
+  const show = d.style.display === 'none';
+  d.style.display = show ? 'block' : 'none';
+  if (show) {
+    if (window._lastVendas) {
+      renderDebug(window._lastVendas, window._lastVendMap||{}, window._lastMeta||{}, window._lastAbas||{}, todayISO());
+    } else {
+      d.textContent = 'Dados ainda nao carregados. Aguarde e tente novamente.';
+    }
+  }
 }
 </script>
 </body>
