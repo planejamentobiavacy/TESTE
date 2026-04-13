@@ -1818,12 +1818,12 @@ function renderStats(rows) {
 }
 
 function _updateTheadTop() {
-  const dashHeader = document.querySelector('.dash-header');
-  if (!dashHeader) return;
-  const hh = dashHeader.offsetHeight;
   let style = document.getElementById('__theadTopStyle__');
   if (!style) { style = document.createElement('style'); style.id = '__theadTopStyle__'; document.head.appendChild(style); }
-  style.textContent = `thead { position:sticky !important; top:${hh}px !important; z-index:20; }`;
+  // Usa dash-header-inner (parte visível) para calcular o offset correto
+  const headerInner = document.querySelector('.dash-header-inner');
+  const hh = headerInner ? headerInner.offsetHeight : 55;
+  style.textContent = `thead { position:sticky !important; top:${hh}px !important; z-index:19; }`;
 }
 
 function renderTable() {
