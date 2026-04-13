@@ -1824,6 +1824,16 @@ function _updateTheadTop() {
     .table-scroll thead { position:sticky !important; top:0 !important; z-index:15; }
     .table-scroll thead th { background:#eef1fb; }
   `;
+
+  // Calcula altura do table-scroll = janela - tudo acima da tabela
+  requestAnimationFrame(() => {
+    const tableScroll = document.querySelector('.table-scroll');
+    if (!tableScroll) return;
+    const rect = tableScroll.getBoundingClientRect();
+    const available = window.innerHeight - rect.top - 8; // 8px margem inferior
+    tableScroll.style.height = Math.max(available, 200) + 'px';
+    tableScroll.style.maxHeight = Math.max(available, 200) + 'px';
+  });
 }
 
 function renderTable() {
