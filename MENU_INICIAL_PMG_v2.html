@@ -113,7 +113,7 @@
   .btn-primary:hover { background:linear-gradient(135deg,var(--red-light),var(--red-dark)); box-shadow:0 6px 20px rgba(212,43,43,.4); transform:translateY(-2px); }
 
   /* DASHBOARD */
-  #dashboard { display:none; position:fixed; inset:0; background:var(--off-white); z-index:300; flex-direction:column; overflow-y:auto; overflow-x:hidden; }
+  #dashboard { display:none; position:fixed; inset:0; background:var(--off-white); z-index:300; flex-direction:column; overflow-y:scroll; }
   #dashboard.active { display:flex; }
   .dash-header { background:linear-gradient(135deg,var(--blue-dark),var(--blue-mid)); position:sticky; top:0; z-index:20; overflow:visible; }
   .dash-header-inner { display:flex; align-items:center; justify-content:space-between; padding:8px 20px; position:relative; z-index:10; gap:10px; }
@@ -166,7 +166,7 @@
   .filter-chip.active { background:var(--blue-mid); border-color:var(--blue-mid); color:var(--white); }
 
   /* table */
-  .table-scroll { overflow-x:auto; }
+  .table-scroll { overflow-x:auto; overflow-y:auto; }
   table { width:100%; border-collapse:separate; border-spacing:0; font-size:12.5px; }
   thead { position:sticky; top:0; z-index:20; }
   thead tr { background:#eef1fb; }
@@ -1746,6 +1746,7 @@ function openDashboard(s) {
   }
   window.scrollTo(0, 0);
   setTimeout(_updateTheadTop, 50);
+  window.addEventListener('resize', _updateTheadTop);
   _startVendasV1Monitor();
 }
 
@@ -1816,12 +1817,41 @@ function renderStats(rows) {
 }
 
 function _updateTheadTop() {
-  let style = document.getElementById('__theadTopStyle__');
-  if (!style) { style = document.createElement('style'); style.id = '__theadTopStyle__'; document.head.appendChild(style); }
-  // Usa dash-header-inner (parte visível) para calcular o offset correto
-  const headerInner = document.querySelector('.dash-header-inner');
-  const hh = headerInner ? headerInner.offsetHeight : 55;
-  style.textContent = `thead { position:sticky !important; top:${hh}px !important; z-index:19; }`;
+  requestAnimationFrame(() => {
+    const dashboard  = document.getElementById('dashboard');
+    const tableScroll = document.querySelector('.table-scroll');
+    const dashHeader = document.querySelector('.dash-header-inner');
+    const filterRow  = document.querySelector('.filter-row');
+    const searchWrap = document.querySelector('.table-toolbar');
+    const statsRow   = document.getElementById('statsRow');
+    const clientsHdr = document.querySelector('.clients-card-header');
+    const feriasBanner = document.getElementById('feriasBanner');
+
+    if (!dashboard || !tableScroll) return;
+
+    // Calcula altura disponível para a tabela
+    const totalH     = dashboard.clientHeight;
+    const headerH    = dashHeader ? dashHeader.offsetHeight : 50;
+    const statsH     = statsRow   ? statsRow.offsetHeight   : 0;
+    const clientsHH  = clientsHdr ? clientsHdr.offsetHeight : 0;
+    const toolbarH   = searchWrap ? searchWrap.offsetHeight : 0;
+    const bannerH    = feriasBanner && feriasBanner.style.display !== 'none' ? feriasBanner.offsetHeight : 0;
+    const padding    = 48; // dash-body padding top+bottom
+
+    const tableH = totalH - headerH - statsH - clientsHH - toolbarH - bannerH - padding;
+
+    tableScroll.style.height    = Math.max(tableH, 300) + 'px';
+    tableScroll.style.overflowY = 'auto';
+    tableScroll.style.overflowX = 'auto';
+
+    // thead sticky top:0 dentro do table-scroll
+    let style = document.getElementById('__theadTopStyle__');
+    if (!style) { style = document.createElement('style'); style.id = '__theadTopStyle__'; document.head.appendChild(style); }
+    style.textContent = `
+      .table-scroll thead { position:sticky !important; top:0 !important; z-index:15; }
+      .table-scroll thead th { background:#eef1fb; }
+    `;
+  });
 }
 
 function renderTable() {
