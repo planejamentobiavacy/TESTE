@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Avacy – Metas de Vendas (Dia)</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #1c2330;
+    --border: #30363d;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --farmer: #1e6fb8;
+    --developer: #c97b2e;
+    --closer: #b5302a;
+    --avacy: #1abc9c;
+    --good: #3fb950;
+    --warn: #e3b341;
+    --danger: #f85149;
+    --radius: 10px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;font-size:13px;min-height:100vh}
+
+  header{display:flex;align-items:center;justify-content:space-between;padding:10px 20px;background:var(--surface);border-bottom:1px solid var(--border)}
+  .logo{display:flex;align-items:center;gap:10px}
+  .logo-text{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:800;letter-spacing:3px}
+  .header-right{display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+  .data-hora{font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:600;color:#48d1b5}
+  .ult-label{font-size:10px;color:var(--muted)}
+  .btn-refresh{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:5px 13px;border-radius:6px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:600;transition:background .15s;margin-top:2px}
+  .btn-refresh:hover{background:#2d3748}
+
+  .main{padding:14px 18px;display:flex;flex-direction:column;gap:14px}
+
+  .avacy-card{background:linear-gradient(135deg,#0a2030 0%,#0d1117 100%);border:1px solid var(--avacy);border-radius:var(--radius);padding:14px 20px;display:flex;align-items:center;gap:28px;flex-wrap:wrap}
+  .avacy-label{font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:800;letter-spacing:3px;color:#48d1b5}
+  .avacy-body{display:flex;align-items:center;gap:24px;flex:1;flex-wrap:wrap}
+  .gauge-wrap{display:flex;flex-direction:column;align-items:center;gap:2px}
+  .gauge-sub{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+  .gauge-pct{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:800;line-height:1;margin-top:1px}
+  .kpis{display:flex;gap:16px;flex-wrap:wrap}
+  .kpi{text-align:center}
+  .kpi .v{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:700}
+  .kpi .l{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px}
+
+  .ch-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .ch-card{border-radius:var(--radius);overflow:hidden;border:1px solid var(--border)}
+  .ch-head{display:flex;align-items:center;justify-content:space-between;padding:9px 14px}
+  .ch-head .title{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:800;letter-spacing:2px;color:#fff}
+  .ch-head .hpct{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:700;color:#fff}
+  .hd-FARMER{background:var(--farmer)}
+  .hd-DEVELOPER{background:var(--developer)}
+  .hd-CLOSER{background:var(--closer)}
+  .ch-gauge{background:var(--surface);padding:12px 14px;display:flex;align-items:center;gap:16px;border-bottom:1px solid var(--border)}
+  .pd-block .lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+  .pd-block .val{font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:700}
+  .ch-table-title{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);padding:7px 12px 3px;background:var(--surface)}
+  table{width:100%;border-collapse:collapse;background:var(--surface)}
+  thead th{background:var(--surface2);font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);padding:5px 8px;text-align:left;border-bottom:1px solid var(--border)}
+  tbody tr{border-bottom:1px solid #1e2530;transition:background .1s}
+  tbody tr:hover{background:var(--surface2)}
+  tbody td{padding:5px 8px;font-size:12px;vertical-align:middle}
+  .nome-td{font-weight:600;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pct-td{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700}
+  .tot-tr td{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;background:var(--surface2)}
+  .cg{color:var(--good)} .cw{color:var(--warn)} .cb{color:var(--danger)}
+
+  #loading{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:999}
+  .spinner{width:38px;height:38px;border:3px solid var(--border);border-top-color:var(--avacy);border-radius:50%;animation:spin .7s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  #loading p{color:var(--muted);font-size:14px}
+  #err-box{display:none;background:#2d1b1b;border:1px solid var(--danger);border-radius:var(--radius);padding:14px 18px;margin:16px;color:#ff8a80;font-size:13px}
+</style>
+</head>
+<body>
+
+<div id="loading"><div class="spinner"></div><p>Carregando dados do dia atual…</p></div>
+<div id="err-box"></div>
+
+<div id="app" style="display:none">
+  <header>
+    <div class="logo">
+      <svg width="36" height="36" viewBox="0 0 40 40" fill="none">
+        <circle cx="20" cy="20" r="20" fill="#1abc9c"/>
+        <path d="M10 31L20 9l10 22" stroke="#fff" stroke-width="3.5" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+        <path d="M14 25h12" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
+      </svg>
+      <span class="logo-text">AVACY</span>
+    </div>
+    <div class="header-right">
+      <div class="data-hora" id="dataHora">—</div>
+      <div class="ult-label">Ult Atualização</div>
+      <button class="btn-refresh" onclick="loadData()">🔄 Atualizar</button>
+    </div>
+  </header>
+
+  <div class="main">
+    <div class="avacy-card">
+      <div class="avacy-label">AVACY</div>
+      <div class="avacy-body">
+        <div class="gauge-wrap">
+          <div class="gauge-sub">%Ating Fat Dia</div>
+          <canvas id="g_AVACY" width="110" height="62"></canvas>
+          <div class="gauge-pct" id="pct_AVACY">—</div>
+        </div>
+        <div class="kpis">
+          <div class="kpi"><div class="v" id="fat_AVACY" style="color:#48d1b5">—</div><div class="l">Faturado Dia</div></div>
+          <div class="kpi"><div class="v" id="meta_AVACY" style="color:var(--muted)">—</div><div class="l">Meta Dia</div></div>
+          <div class="kpi"><div class="v" id="posit_AVACY" style="color:#48d1b5">—</div><div class="l">Positivações</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ch-grid" id="chGrid"></div>
+  </div>
+</div>
+
+<script>
+const APPS_URL = 'https://script.google.com/macros/s/AKfycbzCqxTtAzzpHuxMIY-5zIK3ePsl65HoLpWgz-ibxWCBjGhHWwy99DtYi3W4BtOW1no1/exec';
+
+const CHANNELS = [
+  { id: 'FARMER',    label: 'FARMER',    metaTab: 'FARMER',      metaFilter: null,     color: '#1e6fb8' },
+  { id: 'DEVELOPER', label: 'DEVELOPER', metaTab: 'DEVELOPER',   metaFilter: null,     color: '#c97b2e' },
+  { id: 'CLOSER',    label: 'CLOSER',    metaTab: 'META_OUTROS', metaFilter: 'CLOSER', color: '#b5302a' },
+];
+
+// Build channel HTML
+const grid = document.getElementById('chGrid');
+CHANNELS.forEach(ch => {
+  grid.insertAdjacentHTML('beforeend', `
+    <div class="ch-card">
+      <div class="ch-head hd-${ch.id}">
+        <span class="title">${ch.label}</span>
+        <span class="hpct" id="pct_${ch.id}">—</span>
+      </div>
+      <div class="ch-gauge">
+        <canvas id="g_${ch.id}" width="100" height="60"></canvas>
+        <div class="pd-block">
+          <div class="lbl">Posit Dia</div>
+          <div class="val" id="pd_${ch.id}">—</div>
+        </div>
+      </div>
+      <div class="ch-table-title">Vendedores ${ch.label}</div>
+      <table>
+        <thead><tr><th>Vendedor</th><th>%Fat Dia</th><th>P.Dia</th></tr></thead>
+        <tbody id="tb_${ch.id}"></tbody>
+      </table>
+    </div>`);
+});
+
+// ── CLOCK ────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  tick(); setInterval(tick, 1000);
+  loadData(); setInterval(loadData, 3 * 60 * 1000);
+});
+function tick() {
+  document.getElementById('dataHora').textContent =
+    new Date().toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+
+// ── LOAD ────────────────────────────────────────────────────────────────
+async function loadData() {
+  setLoading(true); clearErr();
+  try {
+    const uniqueTabs = ['vendas_v1', ...new Set(CHANNELS.map(c => c.metaTab))];
+    const results = Object.fromEntries(
+      await Promise.all(uniqueTabs.map(async t => {
+        const r = await fetch(`${APPS_URL}?tab=${encodeURIComponent(t)}`);
+        if (!r.ok) throw new Error(`HTTP ${r.status} aba ${t}`);
+        return [t, await r.json()];
+      }))
+    );
+
+    const vendas = parseSheet(results['vendas_v1']);
+    const hoje   = todayStr();
+    const vendasHoje = vendas.filter(r => matchDate(r, hoje));
+
+    const metas = {};
+    CHANNELS.forEach(ch => {
+      metas[ch.id] = parseMeta(parseSheet(results[ch.metaTab]), ch.metaFilter);
+    });
+
+    render(vendasHoje, metas);
+  } catch(e) {
+    console.error(e); showErr('Erro: ' + e.message);
+  } finally {
+    setLoading(false);
+  }
+}
+
+function todayStr() {
+  const d = new Date();
+  return [d.getDate(),d.getMonth()+1,d.getFullYear()].map(v=>String(v).padStart(2,'0')).join('/');
+}
+function matchDate(row, hoje) {
+  const raw = (row['DATA']||row['DT_EMISSAO']||row['DATA_EMISSAO']||row['DT']||row['DATA_NF']||row['DT_NF']||row['EMISSAO']||'').trim();
+  if (!raw) return false;
+  if (/^\d{2}\/\d{2}\/\d{4}/.test(raw)) return raw.substring(0,10) === hoje;
+  if (/^\d{4}-\d{2}-\d{2}/.test(raw)) {
+    const [y,m,d] = raw.split('T')[0].split('-');
+    return `${d}/${m}/${y}` === hoje;
+  }
+  return false;
+}
+
+function parseSheet(data) {
+  if (!data?.values || data.values.length < 2) return [];
+  const heads = data.values[0].map(h => String(h).trim().toUpperCase());
+  return data.values.slice(1).map(r => {
+    const o = {};
+    heads.forEach((h,i) => { o[h] = r[i] !== undefined ? String(r[i]).trim() : ''; });
+    return o;
+  });
+}
+function parseMeta(rows, canalFilter) {
+  const m = {};
+  rows.forEach(r => {
+    if (canalFilter) {
+      const c = (r['CANAL']||'').toUpperCase();
+      if (c && c !== canalFilter) return;
+    }
+    const nome = (r['NOME_VENDEDOR']||r['VENDEDOR']||r['NOME']||'').toUpperCase();
+    const val  = toNum(r['META_DIA']||r['META_FAT_DIA']||r['META']||0);
+    if (nome && val > 0) m[nome] = (m[nome]||0) + val;
+  });
+  return m;
+}
+function toNum(v) {
+  return parseFloat(String(v).replace(/\s/g,'').replace(/\./g,'').replace(',','.')) || 0;
+}
+
+// ── RENDER ──────────────────────────────────────────────────────────────
+function render(vendasHoje, metas) {
+  const buckets = {};
+  CHANNELS.forEach(ch => { buckets[ch.id] = {}; });
+  let totFat=0, totPosit=0;
+
+  vendasHoje.forEach(r => {
+    const canal = (r['CANAL']||'').toUpperCase();
+    if (!buckets[canal]) return;
+    const nome  = (r['NOME_VENDEDOR']||r['VENDEDOR']||r['NOME']||'(sem nome)').toUpperCase();
+    const fat   = toNum(r['FAT_DIA']||r['FATURAMENTO']||r['VLR_TOTAL']||r['VALOR']||r['VLR']||0);
+    const posit = toNum(r['POSITIVACAO']||r['POSIT']||r['POSITIVACOES']||0) || (fat>0?1:0);
+    if (!buckets[canal][nome]) buckets[canal][nome]={fat:0,posit:0};
+    buckets[canal][nome].fat   += fat;
+    buckets[canal][nome].posit += posit;
+    totFat   += fat;
+    totPosit += posit;
+  });
+
+  let totMeta = 0;
+  CHANNELS.forEach(ch => Object.values(metas[ch.id]).forEach(v => totMeta+=v));
+  const pAvacy = totMeta>0 ? totFat/totMeta*100 : 0;
+
+  set('pct_AVACY', fmtPct(pAvacy), pcls(pAvacy));
+  set('fat_AVACY',  fmtMoney(totFat));
+  set('meta_AVACY', fmtMoney(totMeta));
+  set('posit_AVACY', totPosit);
+  gauge('g_AVACY', pAvacy, '#1abc9c');
+
+  CHANNELS.forEach(ch => renderCh(ch, buckets[ch.id], metas[ch.id]));
+  document.getElementById('app').style.display='';
+}
+
+function renderCh(ch, vMap, mMap) {
+  let chFat=0, chMeta=0, chPosit=0;
+  const rows=[];
+  [...new Set([...Object.keys(vMap),...Object.keys(mMap)])].forEach(nome=>{
+    const d = vMap[nome]||{fat:0,posit:0};
+    const meta = mMap[nome]||0;
+    chFat+=d.fat; chMeta+=meta; chPosit+=d.posit;
+    const pct = meta>0 ? d.fat/meta*100 : (d.fat>0?999:0);
+    rows.push({nome,fat:d.fat,meta,posit:d.posit,pct});
+  });
+  rows.sort((a,b)=>b.pct-a.pct);
+  const chPct = chMeta>0 ? chFat/chMeta*100 : 0;
+
+  set(`pct_${ch.id}`, fmtPct(chPct), pcls(chPct));
+  set(`pd_${ch.id}`, chPosit);
+  gauge(`g_${ch.id}`, chPct, ch.color);
+
+  const tbody = document.getElementById(`tb_${ch.id}`);
+  tbody.innerHTML='';
+  rows.forEach(r=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td class="nome-td" title="${r.nome}">${tc(r.nome)}</td><td class="pct-td ${pcls(r.pct)}">${fmtPct(r.pct)}</td><td>${r.posit}</td>`;
+    tbody.appendChild(tr);
+  });
+  const tot=document.createElement('tr'); tot.className='tot-tr';
+  tot.innerHTML=`<td>Total</td><td class="${pcls(chPct)}">${fmtPct(chPct)}</td><td>${chPosit}</td>`;
+  tbody.appendChild(tot);
+}
+
+// ── GAUGE ───────────────────────────────────────────────────────────────
+function gauge(id,pct,color){
+  const c=document.getElementById(id); if(!c)return;
+  const ctx=c.getContext('2d'); ctx.clearRect(0,0,c.width,c.height);
+  const cx=c.width/2, cy=c.height-2, r=Math.min(c.width*.44,c.height*.88);
+  ctx.beginPath();ctx.arc(cx,cy,r,Math.PI,0,false);ctx.strokeStyle='#2a3040';ctx.lineWidth=9;ctx.lineCap='round';ctx.stroke();
+  const cap=Math.min(pct,150);
+  const ea=Math.PI*(1-cap/150);
+  ctx.beginPath();ctx.arc(cx,cy,r,Math.PI,ea,false);ctx.strokeStyle=color;ctx.lineWidth=9;ctx.lineCap='round';ctx.stroke();
+}
+
+// ── UTILS ───────────────────────────────────────────────────────────────
+function set(id,val,cls){const e=document.getElementById(id);if(!e)return;e.textContent=val;if(cls){e.className=e.className.replace(/\bc[gwb]\b/g,'').trim();e.classList.add(cls);}}
+function fmtPct(n){if(!isFinite(n)||n>=999)return '—';return n.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'%';}
+function fmtMoney(n){if(n>=1e6)return'R$ '+(n/1e6).toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'M';if(n>=1e3)return'R$ '+(n/1e3).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0})+'k';return'R$ '+n.toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0});}
+function pcls(p){return p>=100?'cg':p>=70?'cw':'cb';}
+function tc(s){return s.toLowerCase().replace(/\b\w/g,c=>c.toUpperCase());}
+function setLoading(v){document.getElementById('loading').style.display=v?'flex':'none';}
+function showErr(m){const e=document.getElementById('err-box');e.style.display='block';e.textContent=m;}
+function clearErr(){document.getElementById('err-box').style.display='none';}
+</script>
+</body>
+</html>
