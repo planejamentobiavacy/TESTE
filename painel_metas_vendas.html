@@ -8,7 +8,6 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:#f0f2f5;font-family:'Barlow',sans-serif;font-size:13px;color:#1a1a2e;min-height:100vh}
-
 .header{background:linear-gradient(135deg,#1a2fa8 0%,#0d1b6e 100%);padding:10px 20px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 10px rgba(0,0,0,.3)}
 .header-logo{display:flex;align-items:center;gap:12px}
 .header-title{color:#fff}
@@ -20,9 +19,7 @@ body{background:#f0f2f5;font-family:'Barlow',sans-serif;font-size:13px;color:#1a
 .btn{padding:7px 16px;border-radius:6px;border:none;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;transition:all .15s}
 .btn-primary{background:#fff;color:#1a2fa8}.btn-primary:hover{background:#e8ecff}
 .btn-debug{background:#c0392b;color:#fff}.btn-debug:hover{background:#e74c3c}
-
 .main{padding:14px 16px;display:flex;flex-direction:column;gap:14px}
-
 .top-row{display:grid;grid-template-columns:220px 1fr;gap:14px;align-items:stretch}
 .avacy-card{background:#fff;border-radius:10px;padding:16px 20px;box-shadow:0 2px 8px rgba(0,0,0,.08);border-left:5px solid #1a2fa8;display:flex;flex-direction:column;justify-content:center;gap:5px}
 .avacy-card .lbl{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#888}
@@ -31,7 +28,6 @@ body{background:#f0f2f5;font-family:'Barlow',sans-serif;font-size:13px;color:#1a
 .avacy-card .sub span{font-weight:700}
 .pct-bar{height:6px;background:#e8ecff;border-radius:3px;margin-top:6px;overflow:hidden}
 .pct-bar-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,#1a2fa8,#4a6cf7);transition:width .6s ease}
-
 .canal-top-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 .canal-top-card{background:#fff;border-radius:10px;padding:12px 16px;box-shadow:0 2px 8px rgba(0,0,0,.08);position:relative;overflow:hidden}
 .canal-top-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px}
@@ -43,7 +39,6 @@ body{background:#f0f2f5;font-family:'Barlow',sans-serif;font-size:13px;color:#1a
 .ch-meta{font-size:11px;color:#888;margin-top:2px}
 .ch-pct-badge{display:inline-block;margin-top:6px;padding:3px 10px;border-radius:20px;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700}
 .badge-good{background:#e8f5e9;color:#2e7d32}.badge-warn{background:#fff8e1;color:#e65100}.badge-bad{background:#ffebee;color:#c62828}
-
 .channels-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
 .ch-gauge-card{background:#fff;border-radius:10px 10px 0 0;box-shadow:0 2px 8px rgba(0,0,0,.08);overflow:hidden}
 .ch-gauge-head{padding:10px 14px;display:flex;align-items:center;justify-content:center}
@@ -55,12 +50,10 @@ body{background:#f0f2f5;font-family:'Barlow',sans-serif;font-size:13px;color:#1a
 .gauge-sublabel{font-size:9px;color:#999;text-transform:uppercase;letter-spacing:1px}
 .gauge-pct-val{font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:900;line-height:1;margin-top:2px}
 .col-FARMER{color:#1a6fb8}.col-DEVELOPER{color:#c97b2e}.col-CLOSER{color:#b5302a}
-
 .ch-table-card{border-radius:0 0 10px 10px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.08)}
 .ch-table-head{padding:9px 14px;text-align:center}
 .ch-table-head span{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:900;letter-spacing:2px;color:#fff;text-transform:uppercase}
 .thead-FARMER{background:#1a6fb8}.thead-DEVELOPER{background:#c97b2e}.thead-CLOSER{background:#b5302a}
-
 table{width:100%;border-collapse:collapse;background:#fff}
 thead th{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;padding:6px 8px;text-align:left;border-bottom:2px solid #e0e0e0;white-space:nowrap}
 .th-FARMER{background:#ddeeff;color:#1a6fb8}.th-DEVELOPER{background:#fdebd0;color:#c97b2e}.th-CLOSER{background:#fde8e8;color:#b5302a}
@@ -73,20 +66,17 @@ tbody td{padding:5px 8px;font-size:12px;vertical-align:middle}
 .td-stars{white-space:nowrap;font-size:13px}
 .star-on{color:#f0c040}.star-off{color:#ccc}
 .tot-row td{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:800;background:#f5f5f5;border-top:2px solid #ddd}
-
 #loading{position:fixed;inset:0;background:#f0f2f5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:999}
 .spinner{width:40px;height:40px;border:4px solid #e0e0e0;border-top-color:#1a2fa8;border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 #loading p{color:#888;font-size:14px}
 #err-box{display:none;background:#fff0f0;border:1px solid #e53935;border-radius:8px;padding:14px 18px;margin:16px;color:#c62828;font-size:13px;white-space:pre-wrap}
-#debug-box{display:none;background:#1a1a2e;color:#00ff88;border-radius:8px;padding:14px;margin:0 16px 16px;font-size:10px;white-space:pre-wrap;max-height:400px;overflow:auto;font-family:monospace}
+#debug-box{display:none;background:#1a1a2e;color:#00ff88;border-radius:8px;padding:14px;margin:0 16px 16px;font-size:11px;white-space:pre-wrap;max-height:500px;overflow:auto;font-family:monospace}
 </style>
 </head>
 <body>
-
-<div id="loading"><div class="spinner"></div><p id="loadMsg">Carregando dados…</p></div>
+<div id="loading"><div class="spinner"></div><p id="loadMsg">Carregando…</p></div>
 <div id="err-box"></div>
-
 <div id="app" style="display:none">
   <div class="header">
     <div class="header-logo">
@@ -109,7 +99,6 @@ tbody td{padding:5px 8px;font-size:12px;vertical-align:middle}
       <button class="btn btn-debug" onclick="toggleDebug()">● Debug</button>
     </div>
   </div>
-
   <div class="main">
     <div class="top-row">
       <div class="avacy-card">
@@ -125,462 +114,357 @@ tbody td{padding:5px 8px;font-size:12px;vertical-align:middle}
   </div>
   <div id="debug-box"></div>
 </div>
-
 <script>
-// ─── CONFIG ────────────────────────────────────────────────────────────────
-const APPS_URL = 'https://script.google.com/macros/s/AKfycbzPtcFKRGVIWHurmjMdGrthLLKMcDQuq5HVJxQm_fO9pinzgqXCUXsVKTbznAfPFv0C/exec';
+var APPS_URL = 'https://script.google.com/macros/s/AKfycbzPtcFKRGVIWHurmjMdGrthLLKMcDQuq5HVJxQm_fO9pinzgqXCUXsVKTbznAfPFv0C/exec';
 
-const CHANNELS = [
+var CHANNELS = [
   { id:'FARMER',    label:'FARMER',    color:'#1a6fb8' },
   { id:'DEVELOPER', label:'DEVELOPER', color:'#c97b2e' },
   { id:'CLOSER',    label:'CLOSER',    color:'#b5302a' },
 ];
 
-// Colunas vendas_v1
-const COL_DATA  = 'DATA_FAT';    // "2026-04-02"
-const COL_VEND  = 'NOME_VENDEDOR';
-const COL_FAT   = 'FATURAMENTO';
-const COL_POSIT = 'PEDIDOS';
+// Normaliza nome: uppercase + trim + colapsa espaços
+function normNome(s) {
+  return String(s || '').toUpperCase().trim().replace(/\s+/g, ' ');
+}
 
-// Colunas VEND_CANAL
-const VC_NOME  = ['NOME_VENDEDOR','VENDEDOR','NOME'];
-const VC_CANAL = ['CANAL','canal'];
-const VC_ABA   = ['ABA','aba','Aba'];
-
-// Colunas nas abas de vendedor
-const COL_DATA_ENVIO = 'DATA ENVIO';
-const COL_META_FAT   = 'META FAT.';   // aba FARMER/DEVELOPER/individuais
-const COL_META_FAT2  = 'META FAT';    // aba META_OUTROS (sem ponto)
-
-// ─── BUILD HTML ────────────────────────────────────────────────────────────
-['canalTopGrid','channelsGrid'].forEach(id => document.getElementById(id));
-const canalTopGrid = document.getElementById('canalTopGrid');
-const channelsGrid = document.getElementById('channelsGrid');
-
-CHANNELS.forEach(ch => {
-  canalTopGrid.insertAdjacentHTML('beforeend', `
-    <div class="canal-top-card canal-${ch.id}">
-      <div class="ch-lbl">${ch.label}</div>
-      <div class="ch-fat" id="top-fat-${ch.id}">—</div>
-      <div class="ch-meta">Meta: <span id="top-meta-${ch.id}">—</span></div>
-      <div><span class="ch-pct-badge" id="top-badge-${ch.id}">—</span></div>
-    </div>`);
-
-  channelsGrid.insertAdjacentHTML('beforeend', `
-    <div class="ch-section">
-      <div class="ch-gauge-card">
-        <div class="ch-gauge-head head-${ch.id}"><span class="title">${ch.label}</span></div>
-        <div class="ch-gauge-body">
-          <div class="gauge-sublabel">%ATING_FAT_MTD</div>
-          <canvas id="g_${ch.id}" width="120" height="68"></canvas>
-          <div class="gauge-pct-val col-${ch.id}" id="gpct_${ch.id}">—</div>
-        </div>
-      </div>
-      <div class="ch-table-card">
-        <div class="ch-table-head thead-${ch.id}"><span>Vendedores ${ch.label}</span></div>
-        <table>
-          <thead><tr class="th-${ch.id}">
-            <th>Nome Vendedor</th>
-            <th>%Ating Fat MTD</th>
-            <th>Posit MTD</th>
-            <th>Posit Dia</th>
-          </tr></thead>
-          <tbody id="tb_${ch.id}"></tbody>
-        </table>
-      </div>
-    </div>`);
+// Build channel cards HTML
+var canalTopGrid = document.getElementById('canalTopGrid');
+var channelsGrid = document.getElementById('channelsGrid');
+CHANNELS.forEach(function(ch) {
+  canalTopGrid.insertAdjacentHTML('beforeend',
+    '<div class="canal-top-card canal-'+ch.id+'">' +
+      '<div class="ch-lbl">'+ch.label+'</div>' +
+      '<div class="ch-fat" id="top-fat-'+ch.id+'">—</div>' +
+      '<div class="ch-meta">Meta: <span id="top-meta-'+ch.id+'">—</span></div>' +
+      '<div><span class="ch-pct-badge" id="top-badge-'+ch.id+'">—</span></div>' +
+    '</div>');
+  channelsGrid.insertAdjacentHTML('beforeend',
+    '<div class="ch-section">' +
+      '<div class="ch-gauge-card">' +
+        '<div class="ch-gauge-head head-'+ch.id+'"><span class="title">'+ch.label+'</span></div>' +
+        '<div class="ch-gauge-body">' +
+          '<div class="gauge-sublabel">%ATING_FAT_MTD</div>' +
+          '<canvas id="g_'+ch.id+'" width="120" height="68"></canvas>' +
+          '<div class="gauge-pct-val col-'+ch.id+'" id="gpct_'+ch.id+'">—</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="ch-table-card">' +
+        '<div class="ch-table-head thead-'+ch.id+'"><span>Vendedores '+ch.label+'</span></div>' +
+        '<table><thead><tr class="th-'+ch.id+'">' +
+          '<th>Nome Vendedor</th><th>%Ating Fat MTD</th><th>Posit MTD</th><th>Posit Dia</th>' +
+        '</tr></thead><tbody id="tb_'+ch.id+'"></tbody></table>' +
+      '</div>' +
+    '</div>');
 });
 
-// ─── CLOCK ─────────────────────────────────────────────────────────────────
-// Garante execução independente do estado do DOM
-function initApp() {
-  setInterval(updateClock, 1000);
-  loadData();
-  setInterval(loadData, 3 * 60 * 1000);
-}
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initApp);
-} else {
-  initApp();
-}
+// Clock
 function updateClock() {
-  document.getElementById('dataHora').textContent =
-    new Date().toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',
-      hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  var el = document.getElementById('dataHora');
+  if (el) el.textContent = new Date().toLocaleString('pt-BR',
+    {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit'});
 }
 updateClock();
+setInterval(updateClock, 1000);
 
-// ─── FETCH (com fallback JSONP) ────────────────────────────────────────────
-// Tenta fetch normal primeiro (GitHub Pages / https), fallback para JSONP
-async function fetchJsonp(params) {
-  // Tenta fetch normal com redirect follow
-  try {
-    const url = APPS_URL + '?' + new URLSearchParams(params).toString();
-    const res = await fetch(url, { redirect: 'follow' });
-    if (res.ok) {
-      const text = await res.text();
-      // Apps Script pode retornar JSON ou texto
-      try { return JSON.parse(text); } catch(e) { /* tenta JSONP abaixo */ }
-    }
-  } catch(e) { /* fetch falhou, tenta JSONP */ }
-  // Fallback: JSONP
-  return fetchJsonpLegacy(params);
+// ── FETCH (usa fetch normal com redirect follow) ───────────────────────────
+function apiFetch(params) {
+  var url = APPS_URL + '?' + Object.keys(params).map(function(k) {
+    return encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+  }).join('&');
+  return fetch(url, { redirect: 'follow' })
+    .then(function(r) {
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return r.json();
+    });
 }
 
-let _cbIdx = 0;
-function fetchJsonpLegacy(params) {
-  return new Promise((resolve, reject) => {
-    const cbName = '__cb' + (++_cbIdx) + '_' + Date.now();
-    const script = document.createElement('script');
-    const timer  = setTimeout(() => { cleanup(); reject(new Error('Timeout: ' + JSON.stringify(params))); }, 30000);
-    window[cbName] = data => { cleanup(); resolve(data); };
-    function cleanup() {
-      clearTimeout(timer); delete window[cbName];
-      script.parentNode && script.parentNode.removeChild(script);
-    }
-    script.onerror = () => { cleanup(); reject(new Error('Erro rede: ' + JSON.stringify(params))); };
-    script.src = APPS_URL + '?' + new URLSearchParams({ ...params, callback: cbName }).toString();
-    document.head.appendChild(script);
+// ── LOAD ──────────────────────────────────────────────────────────────────
+function loadData() {
+  setLoading(true, 'Carregando vendas_v1…');
+  clearErr();
+
+  var vendasRows, vendMap, metaPorVend, abasExport;
+
+  apiFetch({ action: 'vendas_v1' })
+  .then(function(res) {
+    vendasRows = res.rows || [];
+    setLoading(true, 'Carregando mapa de canais…');
+    return apiFetch({ sheet: 'VEND_CANAL' });
+  })
+  .then(function(res) {
+    vendMap = buildVendMap(res.rows || []);
+    setLoading(true, 'Carregando abas de meta…');
+    return apiFetch({ action: 'export' });
+  })
+  .then(function(res) {
+    abasExport = res.vendedores || {};
+    document.getElementById('cacheInfo').textContent = res._fromCache ? '📦 cache' : '🔄 ao vivo';
+    setLoading(true, 'Carregando META_OUTROS…');
+    return apiFetch({ sheet: 'META_OUTROS' });
+  })
+  .then(function(res) {
+    var metaOutrosRows = res.rows || [];
+    metaPorVend = calcMetaPorVend(vendMap, abasExport, metaOutrosRows);
+
+    // Salva globais para debug
+    window.G = { vendasRows: vendasRows, vendMap: vendMap, metaPorVend: metaPorVend, abasExport: abasExport };
+
+    render(vendasRows, vendMap, metaPorVend);
+    setLoading(false);
+  })
+  .catch(function(e) {
+    console.error(e);
+    showErr('❌ ' + e.message);
+    document.getElementById('app').style.display = '';
+    setLoading(false);
   });
 }
 
-// ─── LOAD ──────────────────────────────────────────────────────────────────
-async function loadData() {
-  setLoading(true, 'Carregando dados…');
-  clearErr();
-  try {
-    // 1. vendas_v1 — faturamento MTD
-    setLoading(true, 'Carregando vendas_v1…');
-    const resVendas = await fetchJsonp({ action: 'vendas_v1' });
-
-    // 2. Export — todas as abas de vendedor (com META FAT.)
-    setLoading(true, 'Carregando metas dos vendedores…');
-    const resExport = await fetchJsonp({ action: 'export' });
-
-    // 3. META_OUTROS — meta dos CLOSER
-    setLoading(true, 'Carregando META_OUTROS…');
-    const resMetaOutros = await fetchJsonp({ sheet: 'META_OUTROS' });
-
-    // 4. VEND_CANAL — mapa nome → canal + aba
-    setLoading(true, 'Carregando mapa de canais…');
-    const resVC = await fetchJsonp({ sheet: 'VEND_CANAL' });
-
-    // ── Monta mapa: NOME_VENDEDOR → { canal, aba }
-    const vendMap = buildVendMap(resVC.rows || []);
-
-    // ── Calcula meta por vendedor usando aba individual
-    //    vendedores[ABA] = array de rows com DATA ENVIO e META FAT.
-    const abasExport = resExport.vendedores || {};
-    const metaPorVend = calcMetaPorVend(vendMap, abasExport, resMetaOutros.rows || []);
-
-    const vendasRows = resVendas.rows || [];
-    const hoje = todayISO();
-
-    // Salva globais para o debug
-    window._lastNomesNaoMapeados = _nomesNaoMapeados ? [..._nomesNaoMapeados].slice(0,10) : [];
-    window._lastVendas  = vendasRows;
-    window._lastVendMap = vendMap;
-    window._lastMeta    = metaPorVend;
-    window._lastAbas    = abasExport;
-
-    // Salva globais para o debug
-    window._lastNomesNaoMapeados = _nomesNaoMapeados ? [..._nomesNaoMapeados].slice(0,10) : [];
-    window._lastVendas  = vendasRows;
-    window._lastVendMap = vendMap;
-    window._lastMeta    = metaPorVend;
-    window._lastAbas    = abasExport;
-
-    render(vendasRows, vendMap, metaPorVend, hoje);
-
-    document.getElementById('cacheInfo').textContent =
-      resExport._fromCache ? '📦 Export do cache' : '🔄 Dados ao vivo';
-
-    // Atualiza debug se estiver visível
-    const dbg = document.getElementById('debug-box');
-    if (dbg.style.display !== 'none') {
-    // Sempre chama renderDebug para salvar dados
-    renderDebug(vendasRows, vendMap, metaPorVend, abasExport, hoje);
-    }
-
-  } catch(e) {
-    console.error(e);
-    showErr('❌ Erro: ' + e.message + '\n\nStack: ' + (e.stack||''));
-    document.getElementById('app').style.display = '';
-  } finally {
-    setLoading(false);
-  }
+// Inicia após DOM pronto
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', function() { loadData(); setInterval(loadData, 3*60*1000); });
+} else {
+  loadData();
+  setInterval(loadData, 3*60*1000);
 }
 
-// ─── MAPA VEND_CANAL ────────────────────────────────────────────────────────
-// Retorna { "CARLOS ADRIANO LEPERES": { canal: "FARMER", aba: "ADRIANO" }, ... }
+// ── VEND MAP ──────────────────────────────────────────────────────────────
+// { "CARLOS ADRIANO LEPERES": { canal:"FARMER", aba:"ADRIANO" } }
 function buildVendMap(rows) {
-  const map = {};
-  rows.forEach(r => {
-    const nome  = colVal(r, VC_NOME).toUpperCase().trim().replace(/\s+/g,' ');
-    const canal = colVal(r, VC_CANAL).toUpperCase().trim();
-    const aba   = colVal(r, VC_ABA).trim();
-    if (nome) map[nome] = { canal, aba };
+  var map = {};
+  rows.forEach(function(r) {
+    var nome  = normNome(r['NOME_VENDEDOR'] || r['VENDEDOR'] || r['NOME'] || '');
+    var canal = normNome(r['CANAL'] || r['canal'] || '');
+    var aba   = String(r['ABA'] || r['aba'] || '').trim();
+    if (nome && canal) map[nome] = { canal: canal, aba: aba };
   });
   return map;
 }
 
-// ─── CALCULA META POR VENDEDOR ──────────────────────────────────────────────
-// Para cada vendedor no mapa:
-//   - Se canal != CLOSER: busca aba individual em abasExport[aba]
-//     → pega max DATA ENVIO → soma META FAT.
-//   - Se canal == CLOSER: busca META_OUTROS
-//     → pega max DATA ENVIO → soma META FAT (sem ponto)
-// Retorna { "CARLOS ADRIANO LEPERES": 950000, ... }
-function calcMetaPorVend(vendMap, abasExport, metaOutrosRows) {
-  // Pré-calcula max DATA ENVIO da META_OUTROS
-  const maxDataOutros = maxDataEnvio(metaOutrosRows);
-
-  const result = {};
-
-  Object.entries(vendMap).forEach(([nomeVend, info]) => {
-    const { canal, aba } = info;
-
-    if (canal === 'CLOSER') {
-      // Meta do CLOSER: soma META FAT das linhas do vendedor na META_OUTROS
-      // na data mais recente (global da aba)
-      // Tenta casar pelo nome do vendedor na aba META_OUTROS
-      const linhasVend = metaOutrosRows.filter(r => {
-        const data = parseDataEnvio(r[COL_DATA_ENVIO] || '');
-        if (data !== maxDataOutros) return false;
-        const nomeRow = (r['NOME_VENDEDOR'] || r['VENDEDOR'] || r['NOME'] || '').toUpperCase().trim().replace(/\s+/g,' ');
-        // se não tiver nome na linha, soma tudo (aba pode não ter por vendedor)
-        return !nomeRow || nomeRow === nomeVend;
-      });
-
-      if (linhasVend.length > 0) {
-        result[nomeVend] = linhasVend.reduce((s,r) => s + toNum(r[COL_META_FAT2] || r[COL_META_FAT] || 0), 0);
-      } else {
-        // fallback: divide meta total pelo nº de vendedores CLOSER
-        // (será resolvido depois com total)
-        result[nomeVend] = 0;
-      }
-    } else {
-      // FARMER / DEVELOPER: usa aba individual
-      const rows = abasExport[aba] || [];
-      if (!rows.length) { result[nomeVend] = 0; return; }
-
-      // Acha a data mais recente NAS LINHAS DESSE VENDEDOR
-      // (a aba pode ter múltiplos vendedores se for carteira compartilhada)
-      const maxData = maxDataEnvio(rows);
-
-      // Soma META FAT. das linhas da data mais recente
-      const meta = rows
-        .filter(r => parseDataEnvio(r[COL_DATA_ENVIO] || '') === maxData)
-        .reduce((s, r) => s + toNum(r[COL_META_FAT] || r[COL_META_FAT2] || 0), 0);
-
-      result[nomeVend] = meta;
-    }
-  });
-
-  // Fallback CLOSER: se algum ficou com meta=0, divide meta total da META_OUTROS
-  const closerVends = Object.entries(vendMap).filter(([,v]) => v.canal === 'CLOSER');
-  const closerSemMeta = closerVends.filter(([nome]) => !result[nome]);
-  if (closerSemMeta.length > 0) {
-    const totalOutros = metaOutrosRows
-      .filter(r => parseDataEnvio(r[COL_DATA_ENVIO] || '') === maxDataOutros)
-      .reduce((s,r) => s + toNum(r[COL_META_FAT2] || r[COL_META_FAT] || 0), 0);
-    // Subtrai o que já foi atribuído
-    const jaAtribuido = closerVends.reduce((s,[nome]) => s + (result[nome]||0), 0);
-    const restante = totalOutros - jaAtribuido;
-    const porVend  = closerSemMeta.length > 0 ? restante / closerSemMeta.length : 0;
-    closerSemMeta.forEach(([nome]) => { result[nome] = porVend; });
-  }
-
-  return result;
+// ── CALC META ─────────────────────────────────────────────────────────────
+// Normaliza DATA ENVIO → "YYYY-MM-DD"
+function parseDtEnvio(raw) {
+  var s = String(raw || '').trim();
+  var m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
+  if (m) return m[3] + '-' + m[2] + '-' + m[1];
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.substring(0, 10);
+  return s;
 }
 
-// Acha a data mais recente em um array de rows
-function maxDataEnvio(rows) {
-  let max = '';
-  rows.forEach(r => {
-    const d = parseDataEnvio(r[COL_DATA_ENVIO] || '');
+function maxDt(rows) {
+  var max = '';
+  rows.forEach(function(r) {
+    var d = parseDtEnvio(r['DATA ENVIO'] || '');
     if (d > max) max = d;
   });
   return max;
 }
 
-// Normaliza DATA ENVIO → "YYYY-MM-DD" para comparação
-function parseDataEnvio(raw) {
-  const s = String(raw).trim();
-  const m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
-  if (m) return `${m[3]}-${m[2]}-${m[1]}`;
-  if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.substring(0,10);
-  return s;
+function somaMetaFat(rows, dataAlvo, colMeta) {
+  return rows
+    .filter(function(r) { return parseDtEnvio(r['DATA ENVIO'] || '') === dataAlvo; })
+    .reduce(function(s, r) {
+      var v = r[colMeta] || r['META FAT.'] || r['META FAT'] || '0';
+      return s + toNum(v);
+    }, 0);
 }
 
-// ─── RENDER ────────────────────────────────────────────────────────────────
-function render(vendasRows, vendMap, metaPorVend, hoje) {
-  // Buckets por canal: { FARMER: { NOME: { fatMTD, positMTD, positDia } } }
-  const buckets = {};
-  CHANNELS.forEach(ch => { buckets[ch.id] = {}; });
+function calcMetaPorVend(vendMap, abasExport, metaOutrosRows) {
+  var result = {};
+  var maxOutros = maxDt(metaOutrosRows);
 
-  const _nomesNaoMapeados = new Set();
+  Object.keys(vendMap).forEach(function(nome) {
+    var info = vendMap[nome];
+    var canal = info.canal;
+    var aba   = info.aba;
 
-  vendasRows.forEach(r => {
-    const nome  = (r[COL_VEND] || '').toUpperCase().trim().replace(/\s+/g,' ');
-    const info  = vendMap[nome];
-    const canal = info ? info.canal : (r['CANAL'] || '').toUpperCase().trim();
-    if (!info) _nomesNaoMapeados.add(nome);
-    if (!buckets[canal]) return;
-
-    const fat   = toNum(r[COL_FAT]);
-    const posit = toNum(r[COL_POSIT]) || (fat > 0 ? 1 : 0);
-    const isDia = (r[COL_DATA] || '').trim().startsWith(hoje);
-
-    const bkey = nome.replace(/\s+/g,' ');
-    if (!buckets[canal][bkey]) buckets[canal][bkey] = { fatMTD:0, positMTD:0, positDia:0 };
-    buckets[canal][bkey].fatMTD   += fat;
-    buckets[canal][bkey].positMTD += posit;
-    if (isDia) buckets[canal][bkey].positDia += posit;
+    if (canal === 'CLOSER') {
+      // Tenta casar pelo nome na META_OUTROS
+      var linhasVend = metaOutrosRows.filter(function(r) {
+        if (parseDtEnvio(r['DATA ENVIO'] || '') !== maxOutros) return false;
+        var nRow = normNome(r['NOME_VENDEDOR'] || r['VENDEDOR'] || r['NOME'] || '');
+        return !nRow || nRow === nome;
+      });
+      result[nome] = linhasVend.reduce(function(s, r) {
+        return s + toNum(r['META FAT'] || r['META FAT.'] || r['META'] || '0');
+      }, 0);
+    } else {
+      // Usa aba individual
+      var rows = abasExport[aba] || [];
+      if (!rows.length) { result[nome] = 0; return; }
+      var maxD = maxDt(rows);
+      result[nome] = somaMetaFat(rows, maxD, 'META FAT.');
+    }
   });
 
-  // Adiciona vendedores que têm meta mas não aparecem em vendas
-  Object.entries(vendMap).forEach(([nome, info]) => {
-    const canal = info.canal;
-    if (!buckets[canal]) return;
-    const n2 = nome.replace(/\s+/g,' ');
-    if (!buckets[canal][n2]) buckets[canal][n2] = { fatMTD:0, positMTD:0, positDia:0 };
+  // Fallback CLOSER: se meta=0, divide total da META_OUTROS
+  var closerVends = Object.keys(vendMap).filter(function(n) { return vendMap[n].canal === 'CLOSER'; });
+  var totalAtrib  = closerVends.reduce(function(s, n) { return s + (result[n] || 0); }, 0);
+  if (totalAtrib === 0 && metaOutrosRows.length) {
+    var totalOutros = somaMetaFat(metaOutrosRows, maxOutros, 'META FAT');
+    var porVend = closerVends.length ? totalOutros / closerVends.length : 0;
+    closerVends.forEach(function(n) { if (!result[n]) result[n] = porVend; });
+  }
+
+  return result;
+}
+
+// ── RENDER ────────────────────────────────────────────────────────────────
+function render(vendasRows, vendMap, metaPorVend) {
+  var hoje = todayISO();
+
+  // Monta buckets: { FARMER: { "NOME": {fatMTD,positMTD,positDia} } }
+  var buckets = {};
+  CHANNELS.forEach(function(ch) { buckets[ch.id] = {}; });
+
+  // Adiciona todos do vendMap primeiro (garante que aparecem mesmo sem venda)
+  Object.keys(vendMap).forEach(function(nome) {
+    var canal = vendMap[nome].canal;
+    if (buckets[canal]) buckets[canal][nome] = { fatMTD:0, positMTD:0, positDia:0 };
   });
 
-  // Totais
-  let totFat=0, totMeta=0, totPosit=0;
-  CHANNELS.forEach(ch => {
-    Object.entries(buckets[ch.id]).forEach(([nome, d]) => {
-      totFat   += d.fatMTD;
-      totPosit += d.positMTD;
+  // Acumula faturamento
+  vendasRows.forEach(function(r) {
+    var nome  = normNome(r['NOME_VENDEDOR'] || '');
+    var info  = vendMap[nome];
+    var canal = info ? info.canal : normNome(r['CANAL'] || '');
+    if (!buckets[canal]) return;
+    if (!buckets[canal][nome]) buckets[canal][nome] = { fatMTD:0, positMTD:0, positDia:0 };
+
+    var fat   = toNum(r['FATURAMENTO']);
+    var posit = toNum(r['PEDIDOS']) || (fat > 0 ? 1 : 0);
+    var isDia = String(r['DATA_FAT'] || '').trim().startsWith(hoje);
+
+    buckets[canal][nome].fatMTD   += fat;
+    buckets[canal][nome].positMTD += posit;
+    if (isDia) buckets[canal][nome].positDia += posit;
+  });
+
+  // Totais gerais
+  var totFat=0, totMeta=0, totPosit=0;
+  CHANNELS.forEach(function(ch) {
+    Object.keys(buckets[ch.id]).forEach(function(nome) {
+      totFat   += buckets[ch.id][nome].fatMTD;
+      totPosit += buckets[ch.id][nome].positMTD;
       totMeta  += metaPorVend[nome] || 0;
     });
   });
 
-  const pAvacy = totMeta > 0 ? totFat/totMeta*100 : 0;
-  document.getElementById('avacy-fat').textContent  = fmtMoney(totFat);
-  document.getElementById('avacy-meta').textContent = fmtMoney(totMeta);
-  document.getElementById('avacy-posit').textContent= totPosit;
-  const pEl = document.getElementById('avacy-pct');
+  var pAvacy = totMeta > 0 ? totFat/totMeta*100 : 0;
+  setText('avacy-fat',  fmtMoney(totFat));
+  setText('avacy-meta', fmtMoney(totMeta));
+  setText('avacy-posit', totPosit);
+  var pEl = document.getElementById('avacy-pct');
   pEl.textContent = fmtPct(pAvacy);
   pEl.style.color = pctColor(pAvacy);
-  document.getElementById('avacy-bar').style.width  = Math.min(pAvacy,100)+'%';
+  document.getElementById('avacy-bar').style.width = Math.min(pAvacy,100)+'%';
 
-  CHANNELS.forEach(ch => renderChannel(ch, buckets[ch.id], metaPorVend));
+  CHANNELS.forEach(function(ch) { renderChannel(ch, buckets[ch.id], metaPorVend); });
+
+  // Debug box
+  var dbg = document.getElementById('debug-box');
+  var txt = 'Hoje: '+hoje+' | Vendas: '+vendasRows.length+'\n\n';
+  txt += 'VEND_CANAL ('+Object.keys(vendMap).length+' vendedores):\n';
+  Object.keys(vendMap).slice(0,20).forEach(function(nome) {
+    txt += '  ['+nome+'] canal='+vendMap[nome].canal+' aba='+vendMap[nome].aba+' meta='+fmtMoney(metaPorVend[nome]||0)+'\n';
+  });
+  txt += '\nBUCKETS:\n';
+  CHANNELS.forEach(function(ch) {
+    var chFat = Object.keys(buckets[ch.id]).reduce(function(s,n){ return s+buckets[ch.id][n].fatMTD; }, 0);
+    var chMeta = Object.keys(buckets[ch.id]).reduce(function(s,n){ return s+(metaPorVend[n]||0); }, 0);
+    txt += '  '+ch.id+': fat='+fmtMoney(chFat)+' meta='+fmtMoney(chMeta)+' vends='+Object.keys(buckets[ch.id]).length+'\n';
+    Object.keys(buckets[ch.id]).slice(0,5).forEach(function(n) {
+      txt += '    ['+n+'] fat='+fmtMoney(buckets[ch.id][n].fatMTD)+' meta='+fmtMoney(metaPorVend[n]||0)+'\n';
+    });
+  });
+  dbg.textContent = txt;
+
   document.getElementById('app').style.display = '';
 }
 
 function renderChannel(ch, vMap, metaPorVend) {
-  let chFat=0, chMeta=0, chPositMTD=0, chPositDia=0;
-  const rows = [];
+  var chFat=0, chMeta=0, chPositMTD=0, chPositDia=0;
+  var rows = [];
 
-  Object.entries(vMap).forEach(([nome, d]) => {
-    const meta = metaPorVend[nome] || 0;
+  Object.keys(vMap).forEach(function(nome) {
+    var d    = vMap[nome];
+    var meta = metaPorVend[nome] || 0;
     chFat      += d.fatMTD;
     chMeta     += meta;
     chPositMTD += d.positMTD;
     chPositDia += d.positDia;
-    const pct = meta > 0 ? d.fatMTD/meta*100 : (d.fatMTD>0?999:0);
-    rows.push({ nome, fatMTD:d.fatMTD, meta, positMTD:d.positMTD, positDia:d.positDia, pct });
+    var pct = meta > 0 ? d.fatMTD/meta*100 : (d.fatMTD>0?999:0);
+    rows.push({ nome:nome, fatMTD:d.fatMTD, meta:meta, positMTD:d.positMTD, positDia:d.positDia, pct:pct });
   });
 
-  rows.sort((a,b) => b.pct - a.pct);
-  const chPct = chMeta > 0 ? chFat/chMeta*100 : 0;
+  rows.sort(function(a,b){ return b.pct - a.pct; });
+  var chPct = chMeta > 0 ? chFat/chMeta*100 : 0;
 
-  // Top card
-  document.getElementById(`top-fat-${ch.id}`).textContent  = fmtMoney(chFat);
-  document.getElementById(`top-meta-${ch.id}`).textContent = fmtMoney(chMeta);
-  const badge = document.getElementById(`top-badge-${ch.id}`);
-  badge.textContent = fmtPct(chPct) + ' da meta';
-  badge.className   = 'ch-pct-badge ' + badgeCls(chPct);
+  setText('top-fat-'+ch.id,  fmtMoney(chFat));
+  setText('top-meta-'+ch.id, fmtMoney(chMeta));
+  var badge = document.getElementById('top-badge-'+ch.id);
+  badge.textContent = fmtPct(chPct)+' da meta';
+  badge.className   = 'ch-pct-badge '+(chPct>=100?'badge-good':chPct>=70?'badge-warn':'badge-bad');
 
-  gauge(`g_${ch.id}`, chPct, ch.color);
-  document.getElementById(`gpct_${ch.id}`).textContent = fmtPct(chPct);
+  gauge('g_'+ch.id, chPct, ch.color);
+  setText('gpct_'+ch.id, fmtPct(chPct));
 
-  const tbody = document.getElementById(`tb_${ch.id}`);
+  var tbody = document.getElementById('tb_'+ch.id);
   tbody.innerHTML = '';
-  rows.forEach(r => {
-    const starsM = starsHtml(r.positMTD, chPositMTD);
-    const starsD = starsHtml(r.positDia,  chPositDia);
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td class="td-nome" title="${r.nome}">${tc(r.nome)}</td>
-      <td><span class="td-pct ${pctCls(r.pct)}">${fmtPct(r.pct)}</span></td>
-      <td class="td-stars">${starsM} ${r.positMTD}</td>
-      <td class="td-stars">${starsD} ${r.positDia}</td>`;
+  rows.forEach(function(r) {
+    var tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td class="td-nome" title="'+r.nome+'">'+tc(r.nome)+'</td>' +
+      '<td><span class="td-pct '+pctCls(r.pct)+'">'+fmtPct(r.pct)+'</span></td>' +
+      '<td class="td-stars">'+starsHtml(r.positMTD,chPositMTD)+' '+r.positMTD+'</td>' +
+      '<td class="td-stars">'+starsHtml(r.positDia,chPositDia)+' '+r.positDia+'</td>';
     tbody.appendChild(tr);
   });
-
-  const tot = document.createElement('tr'); tot.className='tot-row';
-  tot.innerHTML = `
-    <td>Total</td>
-    <td><span class="td-pct ${pctCls(chPct)}">${fmtPct(chPct)}</span></td>
-    <td>${chPositMTD}</td><td>${chPositDia}</td>`;
+  var tot = document.createElement('tr'); tot.className='tot-row';
+  tot.innerHTML =
+    '<td>Total</td>' +
+    '<td><span class="td-pct '+pctCls(chPct)+'">'+fmtPct(chPct)+'</span></td>' +
+    '<td>'+chPositMTD+'</td><td>'+chPositDia+'</td>';
   tbody.appendChild(tot);
 }
 
-// ─── DEBUG ─────────────────────────────────────────────────────────────────
-function renderDebug(vendasRows, vendMap, metaPorVend, abasExport, hoje) {
-  var dbg = document.getElementById('debug-box');
-  var txt = 'Total vendas: ' + vendasRows.length + ' | Hoje: ' + hoje + '\n\n';
-  txt += '── VEND_CANAL (' + Object.keys(vendMap).length + ' vendedores) ──\n';
-  Object.entries(vendMap).slice(0,20).forEach(function(kv) {
-    txt += '  [' + kv[0] + '] canal=' + kv[1].canal + ' aba=' + kv[1].aba + ' meta=' + fmtMoney(metaPorVend[kv[0]]||0) + '\n';
-  });
-  txt += '\n── ABAS EXPORT: ' + Object.keys(abasExport).join(', ') + '\n';
-  txt += '\n── METAS CALCULADAS ──\n';
-  Object.entries(metaPorVend).forEach(function(kv) {
-    txt += '  [' + kv[0] + '] = ' + fmtMoney(kv[1]) + '\n';
-  });
-  txt += '\n── FARMER vendedores ──\n';
-  Object.entries(vendMap).filter(function(kv){ return kv[1].canal==='FARMER'; }).forEach(function(kv) {
-    txt += '  ' + kv[0] + ' meta=' + fmtMoney(metaPorVend[kv[0]]||0) + '\n';
-  });
-  dbg.textContent = txt;
-  dbg.style.display = 'block';
+// ── GAUGE ────────────────────────────────────────────────────────────────
+function gauge(id, pct, color) {
+  var c = document.getElementById(id); if (!c) return;
+  var ctx = c.getContext('2d');
+  ctx.clearRect(0,0,c.width,c.height);
+  var cx=c.width/2, cy=c.height-4, r=Math.min(c.width*.44,c.height*.9);
+  ctx.beginPath(); ctx.arc(cx,cy,r,Math.PI,0,false);
+  ctx.strokeStyle='#e8e8e8'; ctx.lineWidth=10; ctx.lineCap='round'; ctx.stroke();
+  var cap=Math.min(pct,150), ea=Math.PI*(1-cap/150);
+  ctx.beginPath(); ctx.arc(cx,cy,r,Math.PI,ea,false);
+  ctx.strokeStyle=color+'33'; ctx.lineWidth=18; ctx.lineCap='round'; ctx.stroke();
+  ctx.beginPath(); ctx.arc(cx,cy,r,Math.PI,ea,false);
+  ctx.strokeStyle=color; ctx.lineWidth=10; ctx.lineCap='round'; ctx.stroke();
 }
 
-// ─── STARS ─────────────────────────────────────────────────────────────────
+// ── STARS ────────────────────────────────────────────────────────────────
 function starsHtml(val, total) {
-  if (!total) return '<span class="star-off">☆</span>'.repeat(3);
-  const r = val/total;
-  const f = val===0 ? 0 : r>=0.30 ? 3 : r>=0.15 ? 2 : 1;
-  let s='';
-  for(let i=0;i<3;i++) s+=`<span class="${i<f?'star-on':'star-off'}">${i<f?'★':'☆'}</span>`;
+  var empty = '<span class="star-off">☆</span>';
+  if (!total) return empty+empty+empty;
+  var r = val/total;
+  var f = val===0 ? 0 : r>=0.30 ? 3 : r>=0.15 ? 2 : 1;
+  var s='';
+  for(var i=0;i<3;i++) s += i<f ? '<span class="star-on">★</span>' : empty;
   return s;
 }
 
-// ─── GAUGE ─────────────────────────────────────────────────────────────────
-function gauge(id, pct, color) {
-  const c=document.getElementById(id); if(!c)return;
-  const ctx=c.getContext('2d');
-  ctx.clearRect(0,0,c.width,c.height);
-  const cx=c.width/2, cy=c.height-4, r=Math.min(c.width*.44,c.height*.9);
-  ctx.beginPath();ctx.arc(cx,cy,r,Math.PI,0,false);
-  ctx.strokeStyle='#e8e8e8';ctx.lineWidth=10;ctx.lineCap='round';ctx.stroke();
-  const cap=Math.min(pct,150), ea=Math.PI*(1-cap/150);
-  ctx.beginPath();ctx.arc(cx,cy,r,Math.PI,ea,false);
-  ctx.strokeStyle=color+'33';ctx.lineWidth=18;ctx.lineCap='round';ctx.stroke();
-  ctx.beginPath();ctx.arc(cx,cy,r,Math.PI,ea,false);
-  ctx.strokeStyle=color;ctx.lineWidth=10;ctx.lineCap='round';ctx.stroke();
-}
-
-// ─── UTILS ─────────────────────────────────────────────────────────────────
-function colVal(row, candidates) {
-  for (const c of candidates) {
-    const v = row[c] ?? row[c.toLowerCase()] ?? row[c.toUpperCase()];
-    if (v !== undefined && String(v).trim() !== '') return String(v);
-  }
-  return '';
-}
+// ── UTILS ────────────────────────────────────────────────────────────────
 function toNum(v) {
   if (!v && v!==0) return 0;
   return parseFloat(String(v).replace(/\s/g,'').replace(/\./g,'').replace(',','.')) || 0;
 }
 function todayISO() {
-  const d=new Date();
-  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  var d=new Date();
+  return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
 }
+function pad(n){ return String(n).padStart(2,'0'); }
 function fmtPct(n){ if(!isFinite(n)||n>=999)return'—'; return n.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'%'; }
 function fmtMoney(n){
   if(n>=1e6)return'R$ '+(n/1e6).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'M';
@@ -589,22 +473,14 @@ function fmtMoney(n){
 }
 function pctCls(p){ return p>=100?'pct-g':p>=70?'pct-w':'pct-b'; }
 function pctColor(p){ return p>=100?'#2e7d32':p>=70?'#e65100':'#c62828'; }
-function badgeCls(p){ return p>=100?'badge-good':p>=70?'badge-warn':'badge-bad'; }
-function tc(s){ return s.toLowerCase().replace(/\b\w/g,c=>c.toUpperCase()); }
+function tc(s){ return s.toLowerCase().replace(/\b\w/g,function(c){return c.toUpperCase();}); }
+function setText(id,val){ var e=document.getElementById(id); if(e)e.textContent=val; }
 function setLoading(v,msg){ document.getElementById('loading').style.display=v?'flex':'none'; if(msg)document.getElementById('loadMsg').textContent=msg; }
-function showErr(m){ const e=document.getElementById('err-box'); e.style.display='block'; e.textContent=m; }
+function showErr(m){ var e=document.getElementById('err-box'); e.style.display='block'; e.textContent=m; }
 function clearErr(){ document.getElementById('err-box').style.display='none'; }
 function toggleDebug(){
-  const d = document.getElementById('debug-box');
-  const show = d.style.display === 'none';
-  d.style.display = show ? 'block' : 'none';
-  if (show) {
-    if (window._lastVendas) {
-      renderDebug(window._lastVendas, window._lastVendMap||{}, window._lastMeta||{}, window._lastAbas||{}, todayISO());
-    } else {
-      d.textContent = 'Dados ainda nao carregados. Aguarde e tente novamente.';
-    }
-  }
+  var d=document.getElementById('debug-box');
+  d.style.display = d.style.display==='none' ? 'block' : 'none';
 }
 </script>
 </body>
