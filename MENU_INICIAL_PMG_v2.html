@@ -113,7 +113,7 @@
   .btn-primary:hover { background:linear-gradient(135deg,var(--red-light),var(--red-dark)); box-shadow:0 6px 20px rgba(212,43,43,.4); transform:translateY(-2px); }
 
   /* DASHBOARD */
-  #dashboard { display:none; position:fixed; inset:0; background:var(--off-white); z-index:300; flex-direction:column; overflow-y:scroll; }
+  #dashboard { display:none; position:fixed; inset:0; background:var(--off-white); z-index:300; flex-direction:column; overflow:hidden; }
   #dashboard.active { display:flex; }
   .dash-header { background:linear-gradient(135deg,var(--blue-dark),var(--blue-mid)); position:sticky; top:0; z-index:20; overflow:visible; }
   .dash-header-inner { display:flex; align-items:center; justify-content:space-between; padding:8px 20px; position:relative; z-index:10; gap:10px; }
@@ -126,7 +126,7 @@
   #logoutBtn { position:relative; z-index:10; display:inline-flex !important; align-items:center; gap:6px; background:var(--white) !important; border:2px solid var(--white) !important; border-radius:7px; padding:6px 14px; font-family:'Montserrat',sans-serif; font-weight:800; font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--blue-dark) !important; cursor:pointer; box-shadow:0 3px 12px rgba(0,0,0,.25); flex-shrink:0; }
   #logoutBtn:hover { background:var(--red-light) !important; border-color:var(--red-light) !important; color:var(--white) !important; }
   .dash-header-wave { display:none; }
-  .dash-body { flex:1; padding:12px 16px 40px; max-width:1300px; margin:0 auto; width:100%; }
+  .dash-body { flex:1; padding:12px 16px 8px; max-width:1300px; margin:0 auto; width:100%; display:flex; flex-direction:column; overflow:hidden; }
 
   /* welcome */
   .welcome-card { background:var(--white); border-radius:16px; padding:20px 24px; margin-bottom:20px; box-shadow:0 4px 20px var(--shadow); border-left:5px solid var(--blue-mid); display:flex; align-items:center; gap:16px; }
@@ -147,7 +147,7 @@
   .stat-info .stat-label { font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--text-light); margin-top:3px; }
 
   /* CLIENTS TABLE CARD */
-  .clients-card { background:var(--white); border-radius:16px; overflow:visible; box-shadow:0 4px 20px var(--shadow); }
+  .clients-card { background:var(--white); border-radius:16px; overflow:visible; box-shadow:0 4px 20px var(--shadow); flex:1; display:flex; flex-direction:column; min-height:0; }
   .clients-card-header { background:linear-gradient(135deg,var(--blue-dark),var(--blue-mid)); padding:14px 20px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
   .ch-title { font-family:'Montserrat',sans-serif; font-weight:700; font-size:13px; letter-spacing:2px; text-transform:uppercase; color:rgba(255,255,255,.85); }
   .ch-count { background:rgba(255,255,255,.18); border-radius:20px; padding:3px 12px; font-family:'Montserrat',sans-serif; font-weight:800; font-size:12px; color:var(--white); }
@@ -166,7 +166,7 @@
   .filter-chip.active { background:var(--blue-mid); border-color:var(--blue-mid); color:var(--white); }
 
   /* table */
-  .table-scroll { overflow-x:auto; overflow-y:auto; }
+  .table-scroll { overflow-x:auto; overflow-y:auto; flex:1; min-height:0; }
   table { width:100%; border-collapse:separate; border-spacing:0; font-size:12.5px; }
   thead { position:sticky; top:0; z-index:20; }
   thead tr { background:#eef1fb; }
@@ -1279,6 +1279,7 @@ function parseCadastro(text) {
   const iEmail   = headers.indexOf('EMAIL');
   const iContato = headers.indexOf('CONTATO');
   const iUltCom  = headers.indexOf('ULTCOM');
+  const iCNPJ    = headers.indexOf('CNPJ');
 
   if (iGC < 0) { alert('Coluna GC não encontrada no CSV Cadastro.'); return; }
 
@@ -1294,14 +1295,14 @@ function parseCadastro(text) {
     const email   = iEmail   >= 0 ? (cols[iEmail]  ||'').trim() : '';
     const contato = iContato >= 0 ? (cols[iContato]||'').trim() : '';
     const ultcom  = iUltCom  >= 0 ? (cols[iUltCom] ||'').trim() : '';
+    const cnpj    = iCNPJ    >= 0 ? (cols[iCNPJ]   ||'').trim() : '';
 
-    // Se já existe e tem ULTCOM mais recente, só substitui se a nova for mais recente
     if (cadastroData[codGC]) {
       const existDt = _parseDataBR(cadastroData[codGC].ultcom);
       const newDt   = _parseDataBR(ultcom);
       if (newDt && existDt && newDt <= existDt) continue;
     }
-    cadastroData[codGC] = { tel, email, contato, ultcom };
+    cadastroData[codGC] = { tel, email, contato, ultcom, cnpj };
     if (codGC === '56524') console.log('[D] cadastro stored 56524: gcRaw='+gcRaw+' codGC='+codGC+' tel='+tel+' contato='+contato);
   }
 
@@ -1345,6 +1346,7 @@ function _applyCadastroToCsvData() {
       if (!entry) return;
       if (entry.tel)     row['TELEFONE'] = entry.tel;
       if (entry.contato) row['CONTATO']  = entry.contato;
+      if (entry.cnpj)    row['CNPJ']     = entry.cnpj;
       if (codGC === '56524') console.log('[D] 56524 applied: TEL='+row['TELEFONE']+' CONTATO='+row['CONTATO']);
     });
   });
@@ -1817,41 +1819,13 @@ function renderStats(rows) {
 }
 
 function _updateTheadTop() {
-  requestAnimationFrame(() => {
-    const dashboard  = document.getElementById('dashboard');
-    const tableScroll = document.querySelector('.table-scroll');
-    const dashHeader = document.querySelector('.dash-header-inner');
-    const filterRow  = document.querySelector('.filter-row');
-    const searchWrap = document.querySelector('.table-toolbar');
-    const statsRow   = document.getElementById('statsRow');
-    const clientsHdr = document.querySelector('.clients-card-header');
-    const feriasBanner = document.getElementById('feriasBanner');
-
-    if (!dashboard || !tableScroll) return;
-
-    // Calcula altura disponível para a tabela
-    const totalH     = dashboard.clientHeight;
-    const headerH    = dashHeader ? dashHeader.offsetHeight : 50;
-    const statsH     = statsRow   ? statsRow.offsetHeight   : 0;
-    const clientsHH  = clientsHdr ? clientsHdr.offsetHeight : 0;
-    const toolbarH   = searchWrap ? searchWrap.offsetHeight : 0;
-    const bannerH    = feriasBanner && feriasBanner.style.display !== 'none' ? feriasBanner.offsetHeight : 0;
-    const padding    = 48; // dash-body padding top+bottom
-
-    const tableH = totalH - headerH - statsH - clientsHH - toolbarH - bannerH - padding;
-
-    tableScroll.style.height    = Math.max(tableH, 300) + 'px';
-    tableScroll.style.overflowY = 'auto';
-    tableScroll.style.overflowX = 'auto';
-
-    // thead sticky top:0 dentro do table-scroll
-    let style = document.getElementById('__theadTopStyle__');
-    if (!style) { style = document.createElement('style'); style.id = '__theadTopStyle__'; document.head.appendChild(style); }
-    style.textContent = `
-      .table-scroll thead { position:sticky !important; top:0 !important; z-index:15; }
-      .table-scroll thead th { background:#eef1fb; }
-    `;
-  });
+  let style = document.getElementById('__theadTopStyle__');
+  if (!style) { style = document.createElement('style'); style.id = '__theadTopStyle__'; document.head.appendChild(style); }
+  style.textContent = `
+    .table-scroll { display:block; }
+    .table-scroll thead { position:sticky !important; top:0 !important; z-index:15; }
+    .table-scroll thead th { background:#eef1fb; }
+  `;
 }
 
 function renderTable() {
@@ -1890,7 +1864,7 @@ function renderTable() {
     <div class="table-toolbar">
       <div class="search-wrap">
         <span class="si">🔍</span>
-        <input type="text" id="tblSearch" placeholder="Buscar por nome, estado, grupo..." value="${esc(searchTerm)}">
+        <input type="text" id="tblSearch" placeholder="Buscar por nome, estado, grupo, CNPJ..." value="${esc(searchTerm)}">
       </div>
       ${chips}
       <span style="font-size:11px;font-weight:700;color:var(--text-light);white-space:nowrap;">${filteredRows.length} resultado(s)</span>
