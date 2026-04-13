@@ -277,12 +277,14 @@ async function loadData() {
     const hoje = todayISO();
 
     // Salva globais para o debug
+    window._lastNomesNaoMapeados = _nomesNaoMapeados ? [..._nomesNaoMapeados].slice(0,10) : [];
     window._lastVendas  = vendasRows;
     window._lastVendMap = vendMap;
     window._lastMeta    = metaPorVend;
     window._lastAbas    = abasExport;
 
     // Salva globais para o debug
+    window._lastNomesNaoMapeados = _nomesNaoMapeados ? [..._nomesNaoMapeados].slice(0,10) : [];
     window._lastVendas  = vendasRows;
     window._lastVendMap = vendMap;
     window._lastMeta    = metaPorVend;
@@ -417,11 +419,14 @@ function render(vendasRows, vendMap, metaPorVend, hoje) {
   const buckets = {};
   CHANNELS.forEach(ch => { buckets[ch.id] = {}; });
 
+  // Log para debug: conta quantos nomes não casam com vendMap
+  let _nomesNaoMapeados = new Set();
+
   vendasRows.forEach(r => {
     const nome  = (r[COL_VEND] || '').toUpperCase().trim().replace(/\s+/g,' ');
-    const nome_clean = nome.replace(/\s+/g,' ');
-    const info  = vendMap[nome_clean] || vendMap[nome];
-    const canal = info?.canal || (r['CANAL'] || '').toUpperCase().trim();
+    const info  = vendMap[nome];
+    const canal = info ? info.canal : (r['CANAL'] || '').toUpperCase().trim();
+    if (!info) _nomesNaoMapeados.add(nome);
     if (!buckets[canal]) return;
 
     const fat   = toNum(r[COL_FAT]);
