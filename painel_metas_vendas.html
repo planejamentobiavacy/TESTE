@@ -6,67 +6,45 @@
 <title>Avacy – Metas de Vendas</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-/* ── RESET & BASE ───────────────────────────────────────────────────────── */
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:#f0f2f5;font-family:'Barlow',sans-serif;font-size:13px;color:#1a1a2e;min-height:100vh}
 
-/* ── HEADER ─────────────────────────────────────────────────────────────── */
 .header{background:linear-gradient(135deg,#1a2fa8 0%,#0d1b6e 100%);padding:10px 20px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 10px rgba(0,0,0,.3)}
 .header-logo{display:flex;align-items:center;gap:12px}
-.header-logo svg{filter:drop-shadow(0 0 6px rgba(255,255,255,.3))}
 .header-title{color:#fff}
 .header-title h1{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:800;letter-spacing:2px;line-height:1}
 .header-title p{font-size:10px;letter-spacing:3px;color:rgba(255,255,255,.6);text-transform:uppercase;margin-top:2px}
 .header-right{display:flex;align-items:center;gap:10px}
-.header-info{text-align:right;color:rgba(255,255,255,.8);font-size:11px;line-height:1.5;margin-right:6px}
+.header-info{text-align:right;color:rgba(255,255,255,.8);font-size:11px;line-height:1.6;margin-right:6px}
 .header-info strong{color:#fff;font-size:12px}
 .btn{padding:7px 16px;border-radius:6px;border:none;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;transition:all .15s}
-.btn-primary{background:#fff;color:#1a2fa8}
-.btn-primary:hover{background:#e8ecff}
-.btn-config{background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3)}
-.btn-config:hover{background:rgba(255,255,255,.25)}
-.btn-debug{background:#c0392b;color:#fff}
-.btn-debug:hover{background:#e74c3c}
+.btn-primary{background:#fff;color:#1a2fa8}.btn-primary:hover{background:#e8ecff}
+.btn-debug{background:#c0392b;color:#fff}.btn-debug:hover{background:#e74c3c}
 
-/* ── MAIN ───────────────────────────────────────────────────────────────── */
 .main{padding:14px 16px;display:flex;flex-direction:column;gap:14px}
 
-/* ── AVACY TOTAL ROW ────────────────────────────────────────────────────── */
 .top-row{display:grid;grid-template-columns:220px 1fr;gap:14px;align-items:stretch}
-
-.avacy-card{background:#fff;border-radius:10px;padding:16px 20px;box-shadow:0 2px 8px rgba(0,0,0,.08);border-left:5px solid #1a2fa8;display:flex;flex-direction:column;justify-content:center;gap:4px}
+.avacy-card{background:#fff;border-radius:10px;padding:16px 20px;box-shadow:0 2px 8px rgba(0,0,0,.08);border-left:5px solid #1a2fa8;display:flex;flex-direction:column;justify-content:center;gap:5px}
 .avacy-card .lbl{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#888}
 .avacy-card .fat{font-family:'Barlow Condensed',sans-serif;font-size:36px;font-weight:900;color:#1a2fa8;line-height:1}
 .avacy-card .sub{font-size:11px;color:#666}
-.avacy-card .sub span{font-weight:700;color:#1a2fa8}
-.avacy-card .pct-bar{height:6px;background:#e8ecff;border-radius:3px;margin-top:8px;overflow:hidden}
-.avacy-card .pct-bar-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,#1a2fa8,#4a6cf7);transition:width .6s ease}
+.avacy-card .sub span{font-weight:700}
+.pct-bar{height:6px;background:#e8ecff;border-radius:3px;margin-top:6px;overflow:hidden}
+.pct-bar-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,#1a2fa8,#4a6cf7);transition:width .6s ease}
 
-/* canal cards no topo */
 .canal-top-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 .canal-top-card{background:#fff;border-radius:10px;padding:12px 16px;box-shadow:0 2px 8px rgba(0,0,0,.08);position:relative;overflow:hidden}
 .canal-top-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px}
-.canal-FARMER::before{background:#1a6fb8}
-.canal-DEVELOPER::before{background:#c97b2e}
-.canal-CLOSER::before{background:#b5302a}
-.canal-top-card .ch-lbl{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#555;margin-bottom:4px}
-.canal-FARMER .ch-lbl{color:#1a6fb8}
-.canal-DEVELOPER .ch-lbl{color:#c97b2e}
-.canal-CLOSER .ch-lbl{color:#b5302a}
-.canal-top-card .ch-fat{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:900;line-height:1}
-.canal-FARMER .ch-fat{color:#1a6fb8}
-.canal-DEVELOPER .ch-fat{color:#c97b2e}
-.canal-CLOSER .ch-fat{color:#b5302a}
-.canal-top-card .ch-meta{font-size:11px;color:#888;margin-top:2px}
-.canal-top-card .ch-pct-badge{display:inline-block;margin-top:6px;padding:3px 10px;border-radius:20px;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700}
-.pct-badge-good{background:#e8f5e9;color:#2e7d32}
-.pct-badge-warn{background:#fff8e1;color:#f57f17}
-.pct-badge-bad{background:#ffebee;color:#c62828}
+.canal-FARMER::before{background:#1a6fb8}.canal-DEVELOPER::before{background:#c97b2e}.canal-CLOSER::before{background:#b5302a}
+.ch-lbl{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:800;letter-spacing:2px;text-transform:uppercase;margin-bottom:4px}
+.canal-FARMER .ch-lbl{color:#1a6fb8}.canal-DEVELOPER .ch-lbl{color:#c97b2e}.canal-CLOSER .ch-lbl{color:#b5302a}
+.ch-fat{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:900;line-height:1}
+.canal-FARMER .ch-fat{color:#1a6fb8}.canal-DEVELOPER .ch-fat{color:#c97b2e}.canal-CLOSER .ch-fat{color:#b5302a}
+.ch-meta{font-size:11px;color:#888;margin-top:2px}
+.ch-pct-badge{display:inline-block;margin-top:6px;padding:3px 10px;border-radius:20px;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700}
+.badge-good{background:#e8f5e9;color:#2e7d32}.badge-warn{background:#fff8e1;color:#e65100}.badge-bad{background:#ffebee;color:#c62828}
 
-/* ── CHANNEL SECTION ────────────────────────────────────────────────────── */
 .channels-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
-
-.ch-section{}
 .ch-gauge-card{background:#fff;border-radius:10px 10px 0 0;box-shadow:0 2px 8px rgba(0,0,0,.08);overflow:hidden}
 .ch-gauge-head{padding:10px 14px;display:flex;align-items:center;justify-content:center}
 .ch-gauge-head .title{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:900;letter-spacing:3px;color:#fff;text-transform:uppercase}
@@ -78,7 +56,6 @@ body{background:#f0f2f5;font-family:'Barlow',sans-serif;font-size:13px;color:#1a
 .gauge-pct-val{font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:900;line-height:1;margin-top:2px}
 .col-FARMER{color:#1a6fb8}.col-DEVELOPER{color:#c97b2e}.col-CLOSER{color:#b5302a}
 
-/* ── VENDEDORES TABLE ───────────────────────────────────────────────────── */
 .ch-table-card{border-radius:0 0 10px 10px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.08)}
 .ch-table-head{padding:9px 14px;text-align:center}
 .ch-table-head span{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:900;letter-spacing:2px;color:#fff;text-transform:uppercase}
@@ -86,29 +63,23 @@ body{background:#f0f2f5;font-family:'Barlow',sans-serif;font-size:13px;color:#1a
 
 table{width:100%;border-collapse:collapse;background:#fff}
 thead th{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;padding:6px 8px;text-align:left;border-bottom:2px solid #e0e0e0;white-space:nowrap}
-.th-FARMER{background:#ddeeff;color:#1a6fb8}
-.th-DEVELOPER{background:#fdebd0;color:#c97b2e}
-.th-CLOSER{background:#fde8e8;color:#b5302a}
+.th-FARMER{background:#ddeeff;color:#1a6fb8}.th-DEVELOPER{background:#fdebd0;color:#c97b2e}.th-CLOSER{background:#fde8e8;color:#b5302a}
 tbody tr{border-bottom:1px solid #f0f0f0;transition:background .1s}
 tbody tr:hover{background:#fafafa}
 tbody td{padding:5px 8px;font-size:12px;vertical-align:middle}
-.td-nome{font-weight:600;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.td-pct{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;background:#e8f0fe;border-radius:3px;padding:2px 6px;white-space:nowrap}
-.pct-g{background:#e8f5e9;color:#2e7d32}
-.pct-w{background:#fff8e1;color:#e65100}
-.pct-b{background:#ffebee;color:#c62828}
+.td-nome{font-weight:600;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.td-pct{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;border-radius:3px;padding:2px 6px;white-space:nowrap;display:inline-block}
+.pct-g{background:#e8f5e9;color:#2e7d32}.pct-w{background:#fff8e1;color:#e65100}.pct-b{background:#ffebee;color:#c62828}
 .td-stars{white-space:nowrap;font-size:13px}
-.star-on{color:#f0c040}
-.star-off{color:#ccc}
+.star-on{color:#f0c040}.star-off{color:#ccc}
 .tot-row td{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:800;background:#f5f5f5;border-top:2px solid #ddd}
 
-/* ── LOADING ────────────────────────────────────────────────────────────── */
 #loading{position:fixed;inset:0;background:#f0f2f5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:999}
 .spinner{width:40px;height:40px;border:4px solid #e0e0e0;border-top-color:#1a2fa8;border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 #loading p{color:#888;font-size:14px}
 #err-box{display:none;background:#fff0f0;border:1px solid #e53935;border-radius:8px;padding:14px 18px;margin:16px;color:#c62828;font-size:13px;white-space:pre-wrap}
-#debug-box{display:none;background:#1a1a2e;color:#00ff88;border-radius:8px;padding:14px;margin:0 16px 16px;font-size:10px;white-space:pre-wrap;max-height:300px;overflow:auto;font-family:monospace}
+#debug-box{display:none;background:#1a1a2e;color:#00ff88;border-radius:8px;padding:14px;margin:0 16px 16px;font-size:10px;white-space:pre-wrap;max-height:400px;overflow:auto;font-family:monospace}
 </style>
 </head>
 <body>
@@ -121,7 +92,6 @@ tbody td{padding:5px 8px;font-size:12px;vertical-align:middle}
     <div class="header-logo">
       <svg width="38" height="38" viewBox="0 0 40 40" fill="none">
         <circle cx="20" cy="20" r="20" fill="rgba(255,255,255,0.15)"/>
-        <circle cx="20" cy="20" r="20" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="1"/>
         <path d="M10 31L20 9l10 22" stroke="#fff" stroke-width="3.5" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
         <path d="M14 25h12" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
       </svg>
@@ -132,8 +102,8 @@ tbody td{padding:5px 8px;font-size:12px;vertical-align:middle}
     </div>
     <div class="header-right">
       <div class="header-info">
-        <div>Dados atualizados em <strong id="dataHora">—</strong></div>
-        <div id="cacheInfo" style="color:rgba(255,255,255,.5);font-size:10px"></div>
+        <div>Atualizado: <strong id="dataHora">—</strong></div>
+        <div id="cacheInfo" style="color:rgba(255,255,255,.4);font-size:10px"></div>
       </div>
       <button class="btn btn-primary" onclick="loadData()">↺ Atualizar</button>
       <button class="btn btn-debug" onclick="toggleDebug()">● Debug</button>
@@ -141,22 +111,18 @@ tbody td{padding:5px 8px;font-size:12px;vertical-align:middle}
   </div>
 
   <div class="main">
-    <!-- TOP ROW: Avacy total + canal cards -->
     <div class="top-row">
       <div class="avacy-card">
         <div class="lbl">Avacy Total MTD</div>
         <div class="fat" id="avacy-fat">—</div>
-        <div class="sub">Meta: <span id="avacy-meta">—</span></div>
-        <div class="sub">Positivações: <span id="avacy-posit" style="font-weight:700;color:#1a2fa8">—</span> &nbsp;|&nbsp; <span id="avacy-pct" style="font-weight:700">—</span> da meta</div>
+        <div class="sub">Meta: <span id="avacy-meta" style="color:#1a2fa8">—</span></div>
+        <div class="sub">Posit: <span id="avacy-posit" style="color:#1a2fa8;font-weight:700">—</span> &nbsp;|&nbsp; <span id="avacy-pct" style="font-weight:700">—</span> da meta</div>
         <div class="pct-bar"><div class="pct-bar-fill" id="avacy-bar" style="width:0%"></div></div>
       </div>
       <div class="canal-top-grid" id="canalTopGrid"></div>
     </div>
-
-    <!-- CHANNEL SECTIONS -->
     <div class="channels-grid" id="channelsGrid"></div>
   </div>
-
   <div id="debug-box"></div>
 </div>
 
@@ -164,32 +130,34 @@ tbody td{padding:5px 8px;font-size:12px;vertical-align:middle}
 // ─── CONFIG ────────────────────────────────────────────────────────────────
 const APPS_URL = 'https://script.google.com/macros/s/AKfycbzPtcFKRGVIWHurmjMdGrthLLKMcDQuq5HVJxQm_fO9pinzgqXCUXsVKTbznAfPFv0C/exec';
 
-// Canais principais (FARMER, DEVELOPER, CLOSER)
-// Metas: FARMER e DEVELOPER vêm das abas de mesmo nome; CLOSER vem de META_OUTROS
 const CHANNELS = [
-  { id:'FARMER',    label:'FARMER',    metaTab:'FARMER',      metaFilter:null,     color:'#1a6fb8' },
-  { id:'DEVELOPER', label:'DEVELOPER', metaTab:'DEVELOPER',   metaFilter:null,     color:'#c97b2e' },
-  { id:'CLOSER',    label:'CLOSER',    metaTab:'META_OUTROS', metaFilter:'CLOSER', color:'#b5302a' },
+  { id:'FARMER',    label:'FARMER',    color:'#1a6fb8' },
+  { id:'DEVELOPER', label:'DEVELOPER', color:'#c97b2e' },
+  { id:'CLOSER',    label:'CLOSER',    color:'#b5302a' },
 ];
 
-// Colunas da vendas_v1 (confirmadas pelo debug)
-const COL_DATA  = 'DATA_FAT';       // "2026-04-02"
+// Colunas vendas_v1
+const COL_DATA  = 'DATA_FAT';    // "2026-04-02"
 const COL_VEND  = 'NOME_VENDEDOR';
 const COL_FAT   = 'FATURAMENTO';
-const COL_POSIT = 'PEDIDOS';        // qtd NFs = positivação
+const COL_POSIT = 'PEDIDOS';
 
-// Aba que mapeia vendedor → canal
-// Colunas esperadas: NOME_VENDEDOR (ou similar), CANAL
-const VEND_CANAL_TAB = 'VEND_CANAL';
-const NOME_COLS = ['NOME_VENDEDOR','VENDEDOR','NOME'];
-const META_COLS = ['META_DIA','META_FAT_DIA','META_FAT','META'];
+// Colunas VEND_CANAL
+const VC_NOME  = ['NOME_VENDEDOR','VENDEDOR','NOME'];
+const VC_CANAL = ['CANAL','canal'];
+const VC_ABA   = ['ABA','aba','Aba'];
 
-// ─── BUILD CHANNEL HTML ────────────────────────────────────────────────────
-const canalTopGrid  = document.getElementById('canalTopGrid');
-const channelsGrid  = document.getElementById('channelsGrid');
+// Colunas nas abas de vendedor
+const COL_DATA_ENVIO = 'DATA ENVIO';
+const COL_META_FAT   = 'META FAT.';   // aba FARMER/DEVELOPER/individuais
+const COL_META_FAT2  = 'META FAT';    // aba META_OUTROS (sem ponto)
+
+// ─── BUILD HTML ────────────────────────────────────────────────────────────
+['canalTopGrid','channelsGrid'].forEach(id => document.getElementById(id));
+const canalTopGrid = document.getElementById('canalTopGrid');
+const channelsGrid = document.getElementById('channelsGrid');
 
 CHANNELS.forEach(ch => {
-  // top card
   canalTopGrid.insertAdjacentHTML('beforeend', `
     <div class="canal-top-card canal-${ch.id}">
       <div class="ch-lbl">${ch.label}</div>
@@ -198,13 +166,10 @@ CHANNELS.forEach(ch => {
       <div><span class="ch-pct-badge" id="top-badge-${ch.id}">—</span></div>
     </div>`);
 
-  // full section
   channelsGrid.insertAdjacentHTML('beforeend', `
     <div class="ch-section">
       <div class="ch-gauge-card">
-        <div class="ch-gauge-head head-${ch.id}">
-          <span class="title">${ch.label}</span>
-        </div>
+        <div class="ch-gauge-head head-${ch.id}"><span class="title">${ch.label}</span></div>
         <div class="ch-gauge-body">
           <div class="gauge-sublabel">%ATING_FAT_MTD</div>
           <canvas id="g_${ch.id}" width="120" height="68"></canvas>
@@ -212,18 +177,14 @@ CHANNELS.forEach(ch => {
         </div>
       </div>
       <div class="ch-table-card">
-        <div class="ch-table-head thead-${ch.id}">
-          <span>Vendedores ${ch.label}</span>
-        </div>
+        <div class="ch-table-head thead-${ch.id}"><span>Vendedores ${ch.label}</span></div>
         <table>
-          <thead>
-            <tr class="th-${ch.id}">
-              <th>Nome Vendedor</th>
-              <th>%Ating Fat MTD</th>
-              <th>Posit MTD</th>
-              <th>Posit Dia</th>
-            </tr>
-          </thead>
+          <thead><tr class="th-${ch.id}">
+            <th>Nome Vendedor</th>
+            <th>%Ating Fat MTD</th>
+            <th>Posit MTD</th>
+            <th>Posit Dia</th>
+          </tr></thead>
           <tbody id="tb_${ch.id}"></tbody>
         </table>
       </div>
@@ -249,10 +210,13 @@ function fetchJsonp(params) {
   return new Promise((resolve, reject) => {
     const cbName = '__cb' + (++_cbIdx) + '_' + Date.now();
     const script = document.createElement('script');
-    const timer  = setTimeout(() => { cleanup(); reject(new Error('Timeout: ' + JSON.stringify(params))); }, 25000);
+    const timer  = setTimeout(() => { cleanup(); reject(new Error('Timeout: ' + JSON.stringify(params))); }, 30000);
     window[cbName] = data => { cleanup(); resolve(data); };
-    function cleanup() { clearTimeout(timer); delete window[cbName]; script.parentNode && script.parentNode.removeChild(script); }
-    script.onerror = () => { cleanup(); reject(new Error('Erro de rede: ' + JSON.stringify(params))); };
+    function cleanup() {
+      clearTimeout(timer); delete window[cbName];
+      script.parentNode && script.parentNode.removeChild(script);
+    }
+    script.onerror = () => { cleanup(); reject(new Error('Erro rede: ' + JSON.stringify(params))); };
     script.src = APPS_URL + '?' + new URLSearchParams({ ...params, callback: cbName }).toString();
     document.head.appendChild(script);
   });
@@ -260,141 +224,212 @@ function fetchJsonp(params) {
 
 // ─── LOAD ──────────────────────────────────────────────────────────────────
 async function loadData() {
-  setLoading(true, 'Carregando vendas_v1…');
+  setLoading(true, 'Carregando dados…');
   clearErr();
   try {
-    // 1. vendas_v1 (MTD inteiro — não filtra data)
+    // 1. vendas_v1 — faturamento MTD
+    setLoading(true, 'Carregando vendas_v1…');
     const resVendas = await fetchJsonp({ action: 'vendas_v1' });
-    const vendasRows = resVendas.rows || [];
 
-    // 2. Mapa vendedor → canal (aba VEND_CANAL)
+    // 2. Export — todas as abas de vendedor (com META FAT.)
+    setLoading(true, 'Carregando metas dos vendedores…');
+    const resExport = await fetchJsonp({ action: 'export' });
+
+    // 3. META_OUTROS — meta dos CLOSER
+    setLoading(true, 'Carregando META_OUTROS…');
+    const resMetaOutros = await fetchJsonp({ sheet: 'META_OUTROS' });
+
+    // 4. VEND_CANAL — mapa nome → canal + aba
     setLoading(true, 'Carregando mapa de canais…');
-    const resVC = await fetchJsonp({ sheet: VEND_CANAL_TAB });
-    const vendCanalMap = buildVendCanalMap(resVC.rows || []);
+    const resVC = await fetchJsonp({ sheet: 'VEND_CANAL' });
 
-    // 3. Metas por canal
-    const uniqueMetaTabs = [...new Set(CHANNELS.map(c => c.metaTab))];
-    const metaResults = {};
-    for (const tab of uniqueMetaTabs) {
-      setLoading(true, `Carregando metas: ${tab}…`);
-      metaResults[tab] = await fetchJsonp({ sheet: tab });
-    }
+    // ── Monta mapa: NOME_VENDEDOR → { canal, aba }
+    const vendMap = buildVendMap(resVC.rows || []);
 
-    const metas = {};
-    CHANNELS.forEach(ch => {
-      metas[ch.id] = parseMeta(metaResults[ch.metaTab]?.rows || [], ch.metaFilter);
-    });
+    // ── Calcula meta por vendedor usando aba individual
+    //    vendedores[ABA] = array de rows com DATA ENVIO e META FAT.
+    const abasExport = resExport.vendedores || {};
+    const metaPorVend = calcMetaPorVend(vendMap, abasExport, resMetaOutros.rows || []);
 
-    // Data de hoje para separar DIA de MTD
+    const vendasRows = resVendas.rows || [];
     const hoje = todayISO();
 
-    render(vendasRows, vendCanalMap, metas, hoje);
+    render(vendasRows, vendMap, metaPorVend, hoje);
 
-    if (resVendas._fromCache) {
-      document.getElementById('cacheInfo').textContent = 'Dados do cache';
-    }
+    document.getElementById('cacheInfo').textContent =
+      resExport._fromCache ? '📦 Export do cache' : '🔄 Dados ao vivo';
+
+    // Debug
+    renderDebug(vendasRows, vendMap, metaPorVend, abasExport, hoje);
 
   } catch(e) {
     console.error(e);
-    showErr('❌ ' + e.message + '\n\nAbra com ?debug=1 para ver detalhes.');
+    showErr('❌ ' + e.message);
   } finally {
     setLoading(false);
   }
 }
 
-// ─── MAP VEND → CANAL ──────────────────────────────────────────────────────
-function buildVendCanalMap(rows) {
-  // Espera colunas: NOME_VENDEDOR (ou VENDEDOR/NOME) + CANAL
+// ─── MAPA VEND_CANAL ────────────────────────────────────────────────────────
+// Retorna { "CARLOS ADRIANO LEPERES": { canal: "FARMER", aba: "ADRIANO" }, ... }
+function buildVendMap(rows) {
   const map = {};
   rows.forEach(r => {
-    const nome  = colVal(r, NOME_COLS).toUpperCase().trim();
-    const canal = (r['CANAL'] || r['canal'] || '').toUpperCase().trim();
-    if (nome && canal) map[nome] = canal;
+    const nome  = colVal(r, VC_NOME).toUpperCase().trim();
+    const canal = colVal(r, VC_CANAL).toUpperCase().trim();
+    const aba   = colVal(r, VC_ABA).trim();
+    if (nome) map[nome] = { canal, aba };
   });
   return map;
 }
 
-// ─── PARSE META ────────────────────────────────────────────────────────────
-function parseMeta(rows, canalFilter) {
-  const m = {};
-  rows.forEach(r => {
-    if (canalFilter) {
-      const c = (r['CANAL'] || '').toUpperCase();
-      if (c && c !== canalFilter) return;
+// ─── CALCULA META POR VENDEDOR ──────────────────────────────────────────────
+// Para cada vendedor no mapa:
+//   - Se canal != CLOSER: busca aba individual em abasExport[aba]
+//     → pega max DATA ENVIO → soma META FAT.
+//   - Se canal == CLOSER: busca META_OUTROS
+//     → pega max DATA ENVIO → soma META FAT (sem ponto)
+// Retorna { "CARLOS ADRIANO LEPERES": 950000, ... }
+function calcMetaPorVend(vendMap, abasExport, metaOutrosRows) {
+  // Pré-calcula max DATA ENVIO da META_OUTROS
+  const maxDataOutros = maxDataEnvio(metaOutrosRows);
+
+  const result = {};
+
+  Object.entries(vendMap).forEach(([nomeVend, info]) => {
+    const { canal, aba } = info;
+
+    if (canal === 'CLOSER') {
+      // Meta do CLOSER: soma META FAT das linhas do vendedor na META_OUTROS
+      // na data mais recente (global da aba)
+      // Tenta casar pelo nome do vendedor na aba META_OUTROS
+      const linhasVend = metaOutrosRows.filter(r => {
+        const data = parseDataEnvio(r[COL_DATA_ENVIO] || '');
+        if (data !== maxDataOutros) return false;
+        const nomeRow = (r['NOME_VENDEDOR'] || r['VENDEDOR'] || r['NOME'] || '').toUpperCase().trim();
+        // se não tiver nome na linha, soma tudo (aba pode não ter por vendedor)
+        return !nomeRow || nomeRow === nomeVend;
+      });
+
+      if (linhasVend.length > 0) {
+        result[nomeVend] = linhasVend.reduce((s,r) => s + toNum(r[COL_META_FAT2] || r[COL_META_FAT] || 0), 0);
+      } else {
+        // fallback: divide meta total pelo nº de vendedores CLOSER
+        // (será resolvido depois com total)
+        result[nomeVend] = 0;
+      }
+    } else {
+      // FARMER / DEVELOPER: usa aba individual
+      const rows = abasExport[aba] || [];
+      if (!rows.length) { result[nomeVend] = 0; return; }
+
+      // Acha a data mais recente NAS LINHAS DESSE VENDEDOR
+      // (a aba pode ter múltiplos vendedores se for carteira compartilhada)
+      const maxData = maxDataEnvio(rows);
+
+      // Soma META FAT. das linhas da data mais recente
+      const meta = rows
+        .filter(r => parseDataEnvio(r[COL_DATA_ENVIO] || '') === maxData)
+        .reduce((s, r) => s + toNum(r[COL_META_FAT] || r[COL_META_FAT2] || 0), 0);
+
+      result[nomeVend] = meta;
     }
-    const nome = colVal(r, NOME_COLS).toUpperCase();
-    const val  = toNum(colVal(r, META_COLS));
-    if (nome && val > 0) m[nome] = (m[nome] || 0) + val;
   });
-  return m;
+
+  // Fallback CLOSER: se algum ficou com meta=0, divide meta total da META_OUTROS
+  const closerVends = Object.entries(vendMap).filter(([,v]) => v.canal === 'CLOSER');
+  const closerSemMeta = closerVends.filter(([nome]) => !result[nome]);
+  if (closerSemMeta.length > 0) {
+    const totalOutros = metaOutrosRows
+      .filter(r => parseDataEnvio(r[COL_DATA_ENVIO] || '') === maxDataOutros)
+      .reduce((s,r) => s + toNum(r[COL_META_FAT2] || r[COL_META_FAT] || 0), 0);
+    // Subtrai o que já foi atribuído
+    const jaAtribuido = closerVends.reduce((s,[nome]) => s + (result[nome]||0), 0);
+    const restante = totalOutros - jaAtribuido;
+    const porVend  = closerSemMeta.length > 0 ? restante / closerSemMeta.length : 0;
+    closerSemMeta.forEach(([nome]) => { result[nome] = porVend; });
+  }
+
+  return result;
+}
+
+// Acha a data mais recente em um array de rows
+function maxDataEnvio(rows) {
+  let max = '';
+  rows.forEach(r => {
+    const d = parseDataEnvio(r[COL_DATA_ENVIO] || '');
+    if (d > max) max = d;
+  });
+  return max;
+}
+
+// Normaliza DATA ENVIO → "YYYY-MM-DD" para comparação
+function parseDataEnvio(raw) {
+  const s = String(raw).trim();
+  const m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
+  if (m) return `${m[3]}-${m[2]}-${m[1]}`;
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.substring(0,10);
+  return s;
 }
 
 // ─── RENDER ────────────────────────────────────────────────────────────────
-function render(vendasRows, vendCanalMap, metas, hoje) {
+function render(vendasRows, vendMap, metaPorVend, hoje) {
   // Buckets por canal: { FARMER: { NOME: { fatMTD, positMTD, positDia } } }
   const buckets = {};
   CHANNELS.forEach(ch => { buckets[ch.id] = {}; });
 
   vendasRows.forEach(r => {
-    const nomeRaw = (r[COL_VEND] || '').toUpperCase().trim();
-    // Detecta canal pelo mapa VEND_CANAL, fallback pela própria linha se tiver coluna CANAL
-    const canal = vendCanalMap[nomeRaw] || (r['CANAL'] || '').toUpperCase().trim();
+    const nome  = (r[COL_VEND] || '').toUpperCase().trim();
+    const info  = vendMap[nome];
+    const canal = info?.canal || (r['CANAL'] || '').toUpperCase().trim();
     if (!buckets[canal]) return;
 
     const fat   = toNum(r[COL_FAT]);
     const posit = toNum(r[COL_POSIT]) || (fat > 0 ? 1 : 0);
-    const dataR = (r[COL_DATA] || '').trim();
-    const isDia = dataR.startsWith(hoje);
+    const isDia = (r[COL_DATA] || '').trim().startsWith(hoje);
 
-    if (!buckets[canal][nomeRaw]) buckets[canal][nomeRaw] = { fatMTD:0, positMTD:0, positDia:0 };
-    buckets[canal][nomeRaw].fatMTD   += fat;
-    buckets[canal][nomeRaw].positMTD += posit;
-    if (isDia) buckets[canal][nomeRaw].positDia += posit;
+    if (!buckets[canal][nome]) buckets[canal][nome] = { fatMTD:0, positMTD:0, positDia:0 };
+    buckets[canal][nome].fatMTD   += fat;
+    buckets[canal][nome].positMTD += posit;
+    if (isDia) buckets[canal][nome].positDia += posit;
   });
 
-  // Totais gerais
+  // Adiciona vendedores que têm meta mas não aparecem em vendas
+  Object.entries(vendMap).forEach(([nome, info]) => {
+    const canal = info.canal;
+    if (!buckets[canal]) return;
+    if (!buckets[canal][nome]) buckets[canal][nome] = { fatMTD:0, positMTD:0, positDia:0 };
+  });
+
+  // Totais
   let totFat=0, totMeta=0, totPosit=0;
   CHANNELS.forEach(ch => {
-    Object.values(buckets[ch.id]).forEach(d => { totFat += d.fatMTD; totPosit += d.positMTD; });
-    Object.values(metas[ch.id]).forEach(v => totMeta += v);
+    Object.entries(buckets[ch.id]).forEach(([nome, d]) => {
+      totFat   += d.fatMTD;
+      totPosit += d.positMTD;
+      totMeta  += metaPorVend[nome] || 0;
+    });
   });
 
   const pAvacy = totMeta > 0 ? totFat/totMeta*100 : 0;
-  document.getElementById('avacy-fat').textContent   = fmtMoney(totFat);
-  document.getElementById('avacy-meta').textContent  = fmtMoney(totMeta);
-  document.getElementById('avacy-posit').textContent = totPosit;
-  document.getElementById('avacy-pct').textContent   = fmtPct(pAvacy);
-  document.getElementById('avacy-pct').style.color   = pctColor(pAvacy);
-  document.getElementById('avacy-bar').style.width   = Math.min(pAvacy, 100) + '%';
+  document.getElementById('avacy-fat').textContent  = fmtMoney(totFat);
+  document.getElementById('avacy-meta').textContent = fmtMoney(totMeta);
+  document.getElementById('avacy-posit').textContent= totPosit;
+  const pEl = document.getElementById('avacy-pct');
+  pEl.textContent = fmtPct(pAvacy);
+  pEl.style.color = pctColor(pAvacy);
+  document.getElementById('avacy-bar').style.width  = Math.min(pAvacy,100)+'%';
 
-  // Debug
-  const dbg = document.getElementById('debug-box');
-  if (dbg.style.display !== 'none') {
-    dbg.textContent =
-      `Total vendas: ${vendasRows.length} | Hoje: ${hoje}\n` +
-      `VendCanalMap (amostra): ${JSON.stringify(Object.entries(vendCanalMap).slice(0,5))}\n\n` +
-      CHANNELS.map(ch =>
-        `${ch.id}: ${Object.keys(buckets[ch.id]).length} vendedores | ` +
-        `fatMTD=${fmtMoney(Object.values(buckets[ch.id]).reduce((s,d)=>s+d.fatMTD,0))} | ` +
-        `meta=${fmtMoney(Object.values(metas[ch.id]).reduce((s,v)=>s+v,0))}\n` +
-        `  metas keys: ${Object.keys(metas[ch.id]).slice(0,5).join(', ')}\n` +
-        `  bucket keys: ${Object.keys(buckets[ch.id]).slice(0,5).join(', ')}`
-      ).join('\n\n');
-  }
-
-  CHANNELS.forEach(ch => renderChannel(ch, buckets[ch.id], metas[ch.id]));
+  CHANNELS.forEach(ch => renderChannel(ch, buckets[ch.id], metaPorVend));
   document.getElementById('app').style.display = '';
 }
 
-function renderChannel(ch, vMap, mMap) {
+function renderChannel(ch, vMap, metaPorVend) {
   let chFat=0, chMeta=0, chPositMTD=0, chPositDia=0;
   const rows = [];
 
-  // Une vendedores com vendas + vendedores só com meta
-  const allNomes = new Set([...Object.keys(vMap), ...Object.keys(mMap)]);
-  allNomes.forEach(nome => {
-    const d    = vMap[nome] || { fatMTD:0, positMTD:0, positDia:0 };
-    const meta = mMap[nome] || 0;
+  Object.entries(vMap).forEach(([nome, d]) => {
+    const meta = metaPorVend[nome] || 0;
     chFat      += d.fatMTD;
     chMeta     += meta;
     chPositMTD += d.positMTD;
@@ -402,28 +437,25 @@ function renderChannel(ch, vMap, mMap) {
     const pct = meta > 0 ? d.fatMTD/meta*100 : (d.fatMTD>0?999:0);
     rows.push({ nome, fatMTD:d.fatMTD, meta, positMTD:d.positMTD, positDia:d.positDia, pct });
   });
-  rows.sort((a,b) => b.pct - a.pct);
 
+  rows.sort((a,b) => b.pct - a.pct);
   const chPct = chMeta > 0 ? chFat/chMeta*100 : 0;
 
   // Top card
-  const el = id => document.getElementById(id);
-  el(`top-fat-${ch.id}`).textContent  = fmtMoney(chFat);
-  el(`top-meta-${ch.id}`).textContent = fmtMoney(chMeta);
-  const badge = el(`top-badge-${ch.id}`);
-  badge.textContent  = fmtPct(chPct) + ' da meta';
-  badge.className    = 'ch-pct-badge ' + badgeCls(chPct);
+  document.getElementById(`top-fat-${ch.id}`).textContent  = fmtMoney(chFat);
+  document.getElementById(`top-meta-${ch.id}`).textContent = fmtMoney(chMeta);
+  const badge = document.getElementById(`top-badge-${ch.id}`);
+  badge.textContent = fmtPct(chPct) + ' da meta';
+  badge.className   = 'ch-pct-badge ' + badgeCls(chPct);
 
-  // Gauge
   gauge(`g_${ch.id}`, chPct, ch.color);
-  el(`gpct_${ch.id}`).textContent = fmtPct(chPct);
+  document.getElementById(`gpct_${ch.id}`).textContent = fmtPct(chPct);
 
-  // Tabela
   const tbody = document.getElementById(`tb_${ch.id}`);
   tbody.innerHTML = '';
   rows.forEach(r => {
-    const starsM = starsHtml(r.positMTD, chPositMTD);  // estrelas baseadas em posit MTD relativo
-    const starsD = starsHtml(r.positDia, chPositDia);
+    const starsM = starsHtml(r.positMTD, chPositMTD);
+    const starsD = starsHtml(r.positDia,  chPositDia);
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td class="td-nome" title="${r.nome}">${tc(r.nome)}</td>
@@ -433,57 +465,62 @@ function renderChannel(ch, vMap, mMap) {
     tbody.appendChild(tr);
   });
 
-  // Total
   const tot = document.createElement('tr'); tot.className='tot-row';
   tot.innerHTML = `
     <td>Total</td>
     <td><span class="td-pct ${pctCls(chPct)}">${fmtPct(chPct)}</span></td>
-    <td>${chPositMTD}</td>
-    <td>${chPositDia}</td>`;
+    <td>${chPositMTD}</td><td>${chPositDia}</td>`;
   tbody.appendChild(tot);
 }
 
+// ─── DEBUG ─────────────────────────────────────────────────────────────────
+function renderDebug(vendasRows, vendMap, metaPorVend, abasExport, hoje) {
+  const dbg = document.getElementById('debug-box');
+  if (dbg.style.display === 'none') return;
+
+  let txt = `Hoje: ${hoje} | Vendas total: ${vendasRows.length}\n\n`;
+  txt += `── VEND_CANAL (${Object.keys(vendMap).length} vendedores) ──\n`;
+  Object.entries(vendMap).slice(0,8).forEach(([nome,info]) => {
+    txt += `  ${nome} → canal:${info.canal} aba:${info.aba} meta:${fmtMoney(metaPorVend[nome]||0)}\n`;
+  });
+  txt += `\n── ABAS EXPORT disponíveis ──\n${Object.keys(abasExport).join(', ')}\n`;
+  txt += `\n── METAS calculadas (amostra) ──\n`;
+  Object.entries(metaPorVend).slice(0,10).forEach(([nome,meta]) => {
+    txt += `  ${nome}: ${fmtMoney(meta)}\n`;
+  });
+  dbg.textContent = txt;
+}
+
 // ─── STARS ─────────────────────────────────────────────────────────────────
-// 1 estrela cheia se acima da média, vazia se abaixo — máx 3 estrelas
 function starsHtml(val, total) {
-  // Lógica: estrela cheia = top 33%, meia = mid, vazia = baixo
-  // Simplificado: proporção do total → 0-3 estrelas
-  if (!total || total === 0) return '<span class="star-off">☆</span><span class="star-off">☆</span><span class="star-off">☆</span>';
-  const ratio = val / total;
-  const filled = ratio >= 0.15 ? (ratio >= 0.30 ? 3 : 2) : (val > 0 ? 1 : 0);
-  let s = '';
-  for (let i=0;i<3;i++) s += `<span class="${i<filled?'star-on':'star-off'}">${i<filled?'★':'☆'}</span>`;
+  if (!total) return '<span class="star-off">☆</span>'.repeat(3);
+  const r = val/total;
+  const f = val===0 ? 0 : r>=0.30 ? 3 : r>=0.15 ? 2 : 1;
+  let s='';
+  for(let i=0;i<3;i++) s+=`<span class="${i<f?'star-on':'star-off'}">${i<f?'★':'☆'}</span>`;
   return s;
 }
 
 // ─── GAUGE ─────────────────────────────────────────────────────────────────
 function gauge(id, pct, color) {
-  const c = document.getElementById(id); if (!c) return;
-  const ctx = c.getContext('2d');
+  const c=document.getElementById(id); if(!c)return;
+  const ctx=c.getContext('2d');
   ctx.clearRect(0,0,c.width,c.height);
   const cx=c.width/2, cy=c.height-4, r=Math.min(c.width*.44,c.height*.9);
-
-  // track
-  ctx.beginPath(); ctx.arc(cx,cy,r,Math.PI,0,false);
-  ctx.strokeStyle='#e8e8e8'; ctx.lineWidth=10; ctx.lineCap='round'; ctx.stroke();
-
-  // value
-  const cap = Math.min(pct,150);
-  const ea  = Math.PI*(1-cap/150);
-  ctx.beginPath(); ctx.arc(cx,cy,r,Math.PI,ea,false);
-  ctx.strokeStyle=color; ctx.lineWidth=10; ctx.lineCap='round'; ctx.stroke();
-
-  // glow
-  ctx.beginPath(); ctx.arc(cx,cy,r,Math.PI,ea,false);
-  ctx.strokeStyle=color+'44'; ctx.lineWidth=16; ctx.lineCap='round'; ctx.stroke();
+  ctx.beginPath();ctx.arc(cx,cy,r,Math.PI,0,false);
+  ctx.strokeStyle='#e8e8e8';ctx.lineWidth=10;ctx.lineCap='round';ctx.stroke();
+  const cap=Math.min(pct,150), ea=Math.PI*(1-cap/150);
+  ctx.beginPath();ctx.arc(cx,cy,r,Math.PI,ea,false);
+  ctx.strokeStyle=color+'33';ctx.lineWidth=18;ctx.lineCap='round';ctx.stroke();
+  ctx.beginPath();ctx.arc(cx,cy,r,Math.PI,ea,false);
+  ctx.strokeStyle=color;ctx.lineWidth=10;ctx.lineCap='round';ctx.stroke();
 }
 
 // ─── UTILS ─────────────────────────────────────────────────────────────────
 function colVal(row, candidates) {
-  if (typeof candidates === 'string') return String(row[candidates] ?? '');
   for (const c of candidates) {
     const v = row[c] ?? row[c.toLowerCase()] ?? row[c.toUpperCase()];
-    if (v !== undefined && v !== null && String(v).trim() !== '') return String(v);
+    if (v !== undefined && String(v).trim() !== '') return String(v);
   }
   return '';
 }
@@ -495,15 +532,15 @@ function todayISO() {
   const d=new Date();
   return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 }
-function fmtPct(n) { if(!isFinite(n)||n>=999)return'—'; return n.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'%'; }
-function fmtMoney(n) {
-  if(n>=1e6) return 'R$ '+(n/1e6).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'M';
-  if(n>=1e3) return 'R$ '+(n/1e3).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0})+'k';
-  return 'R$ '+n.toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0});
+function fmtPct(n){ if(!isFinite(n)||n>=999)return'—'; return n.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'%'; }
+function fmtMoney(n){
+  if(n>=1e6)return'R$ '+(n/1e6).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})+'M';
+  if(n>=1e3)return'R$ '+(n/1e3).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0})+'k';
+  return'R$ '+n.toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0});
 }
-function pctCls(p) { return p>=100?'pct-g':p>=70?'pct-w':'pct-b'; }
+function pctCls(p){ return p>=100?'pct-g':p>=70?'pct-w':'pct-b'; }
 function pctColor(p){ return p>=100?'#2e7d32':p>=70?'#e65100':'#c62828'; }
-function badgeCls(p){ return p>=100?'pct-badge-good':p>=70?'pct-badge-warn':'pct-badge-bad'; }
+function badgeCls(p){ return p>=100?'badge-good':p>=70?'badge-warn':'badge-bad'; }
 function tc(s){ return s.toLowerCase().replace(/\b\w/g,c=>c.toUpperCase()); }
 function setLoading(v,msg){ document.getElementById('loading').style.display=v?'flex':'none'; if(msg)document.getElementById('loadMsg').textContent=msg; }
 function showErr(m){ const e=document.getElementById('err-box'); e.style.display='block'; e.textContent=m; }
@@ -511,6 +548,7 @@ function clearErr(){ document.getElementById('err-box').style.display='none'; }
 function toggleDebug(){
   const d=document.getElementById('debug-box');
   d.style.display = d.style.display==='none' ? 'block' : 'none';
+  if(d.style.display==='block') renderDebug(window._lastVendas||[], window._lastVendMap||{}, window._lastMeta||{}, window._lastAbas||{}, todayISO());
 }
 </script>
 </body>
