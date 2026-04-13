@@ -147,7 +147,7 @@
   .stat-info .stat-label { font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--text-light); margin-top:3px; }
 
   /* CLIENTS TABLE CARD */
-  .clients-card { background:var(--white); border-radius:16px; overflow-x:auto; overflow-y:visible; box-shadow:0 4px 20px var(--shadow); }
+  .clients-card { background:var(--white); border-radius:16px; overflow:visible; box-shadow:0 4px 20px var(--shadow); }
   .clients-card-header { background:linear-gradient(135deg,var(--blue-dark),var(--blue-mid)); padding:14px 20px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
   .ch-title { font-family:'Montserrat',sans-serif; font-weight:700; font-size:13px; letter-spacing:2px; text-transform:uppercase; color:rgba(255,255,255,.85); }
   .ch-count { background:rgba(255,255,255,.18); border-radius:20px; padding:3px 12px; font-family:'Montserrat',sans-serif; font-weight:800; font-size:12px; color:var(--white); }
@@ -166,7 +166,7 @@
   .filter-chip.active { background:var(--blue-mid); border-color:var(--blue-mid); color:var(--white); }
 
   /* table */
-  .table-scroll { overflow:visible; }
+  .table-scroll { overflow-x:auto; }
   table { width:100%; border-collapse:separate; border-spacing:0; font-size:12.5px; }
   thead { position:sticky; top:0; z-index:20; }
   thead tr { background:#eef1fb; }
@@ -1747,6 +1747,7 @@ function openDashboard(s) {
     lblU.textContent = tsU ? `🔄 Atualizado: ${tsU}` : '';
   }
   window.scrollTo(0, 0);
+  setTimeout(_updateTheadTop, 50);
   _startVendasV1Monitor();
 }
 
@@ -1816,22 +1817,21 @@ function renderStats(rows) {
   `;
 }
 
+function _updateTheadTop() {
+  const dashHeader = document.querySelector('.dash-header');
+  if (!dashHeader) return;
+  const hh = dashHeader.offsetHeight;
+  let style = document.getElementById('__theadTopStyle__');
+  if (!style) { style = document.createElement('style'); style.id = '__theadTopStyle__'; document.head.appendChild(style); }
+  style.textContent = `thead { position:sticky !important; top:${hh}px !important; z-index:20; }`;
+}
+
 function renderTable() {
   const area = document.getElementById('tableArea');
   if (!area) return;
 
   // Ajusta sticky do thead para ficar abaixo do header fixo
-  const dashHeader = document.querySelector('.dash-header');
-  if (dashHeader) {
-    const hh = dashHeader.offsetHeight;
-    const style = document.getElementById('__theadTopStyle__') || (() => {
-      const s = document.createElement('style');
-      s.id = '__theadTopStyle__';
-      document.head.appendChild(s);
-      return s;
-    })();
-    style.textContent = `thead { top: ${hh}px !important; }`;
-  }
+  _updateTheadTop();
 
   if (activeRows.length === 0) {
     area.innerHTML = `<div class="empty-state"><div class="es-icon">📂</div><strong>NENHUM CLIENTE ENCONTRADO</strong><p>Importe o CSV consolidado no painel inicial para visualizar sua carteira.</p></div>`;
