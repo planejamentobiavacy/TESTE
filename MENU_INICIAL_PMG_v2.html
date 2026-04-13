@@ -113,7 +113,7 @@
   .btn-primary:hover { background:linear-gradient(135deg,var(--red-light),var(--red-dark)); box-shadow:0 6px 20px rgba(212,43,43,.4); transform:translateY(-2px); }
 
   /* DASHBOARD */
-  #dashboard { display:none; position:fixed; inset:0; background:var(--off-white); z-index:300; flex-direction:column; overflow-y:auto; }
+  #dashboard { display:none; position:fixed; inset:0; background:var(--off-white); z-index:300; flex-direction:column; overflow-y:auto; overflow-x:hidden; }
   #dashboard.active { display:flex; }
   .dash-header { background:linear-gradient(135deg,var(--blue-dark),var(--blue-mid)); position:sticky; top:0; z-index:20; overflow:visible; }
   .dash-header-inner { display:flex; align-items:center; justify-content:space-between; padding:18px 28px; position:relative; z-index:10; gap:12px; }
@@ -147,7 +147,7 @@
   .stat-info .stat-label { font-size:10px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--text-light); margin-top:3px; }
 
   /* CLIENTS TABLE CARD */
-  .clients-card { background:var(--white); border-radius:16px; overflow:hidden; box-shadow:0 4px 20px var(--shadow); }
+  .clients-card { background:var(--white); border-radius:16px; overflow-x:auto; overflow-y:visible; box-shadow:0 4px 20px var(--shadow); }
   .clients-card-header { background:linear-gradient(135deg,var(--blue-dark),var(--blue-mid)); padding:14px 20px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
   .ch-title { font-family:'Montserrat',sans-serif; font-weight:700; font-size:13px; letter-spacing:2px; text-transform:uppercase; color:rgba(255,255,255,.85); }
   .ch-count { background:rgba(255,255,255,.18); border-radius:20px; padding:3px 12px; font-family:'Montserrat',sans-serif; font-weight:800; font-size:12px; color:var(--white); }
@@ -166,7 +166,7 @@
   .filter-chip.active { background:var(--blue-mid); border-color:var(--blue-mid); color:var(--white); }
 
   /* table */
-  .table-scroll { overflow-x:auto; }
+  .table-scroll { overflow:visible; }
   table { width:100%; border-collapse:separate; border-spacing:0; font-size:12.5px; }
   thead { position:sticky; top:0; z-index:20; }
   thead tr { background:#eef1fb; }
