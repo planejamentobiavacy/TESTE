@@ -31,7 +31,7 @@
 }
 *{margin:0;padding:0;box-sizing:border-box}
 html{scroll-behavior:smooth}
-body{font-family:'Montserrat',sans-serif;background:var(--off);color:var(--text);min-height:100vh}
+body{font-family:'Montserrat',sans-serif;background:var(--off);color:var(--text);min-height:100vh;overflow-y:scroll}
 
 /* ── HEADER ── */
 .hdr{position:sticky;top:0;z-index:100;background:var(--blue);box-shadow:var(--sh);overflow:hidden;min-height:100px}
@@ -187,10 +187,13 @@ tbody td:first-child{font-weight:700;color:var(--text)}
       </div>
     </div>
     <div class="hdr-r">
-      <span class="upd" id="upd">—</span>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px">
+        <span class="upd" id="upd">—</span>
+        <span class="upd" id="upd-v1" style="display:none"></span>
+      </div>
       <button class="btn btn-w" id="btn-ref" onclick="saveSettAndLoad()">↻ Atualizar</button>
-      <button id="btn-bell" onclick="saveSettAndLoad()" style="display:none;position:relative;background:#ff6b35;border:none;color:#fff;padding:7px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700" title="Há dados novos no G.Sheets — clique para atualizar">
-        🔔 <span id="bell-label" style="font-size:11px;font-weight:700;vertical-align:middle"></span>
+      <button id="btn-bell" onclick="saveSettAndLoad()" style="display:none;position:relative;background:#1a3a8c;border:none;color:#fff;padding:7px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700" title="Novo salvamento no PMG — clique para atualizar">
+        🔔 <span id="bell-label" style="font-size:11px;font-weight:700;vertical-align:middle">PMG</span>
         <span style="position:absolute;top:-4px;right:-4px;width:10px;height:10px;background:#ff4444;border-radius:50%;border:2px solid var(--blue)"></span>
       </button>
       <button class="btn btn-r" onclick="toggleSett()">⚙ Configurar</button>
@@ -254,7 +257,6 @@ tbody td:first-child{font-weight:700;color:var(--text)}
   <div class="dchip" onclick="setPeriod('hoje',this)">Hoje</div>
   <div class="dchip" onclick="setPeriod('1',this)">Últ. Dia</div>
   <div class="dchip" onclick="setPeriod('7',this)">7 dias</div>
-  <div class="dchip" onclick="setPeriod('mtd',this)">MTD</div>
   <div class="dchip" onclick="setPeriod('custom',this)">Personalizado</div>
   <input type="date" class="dinp" id="d-from" style="display:none" onchange="applyDates()">
   <span id="d-sep" style="display:none;color:var(--text3);font-size:12px">até</span>
@@ -349,6 +351,52 @@ const VENDOR_MAP = {
 
 let VENDAS_V1 = []; // dados brutos da aba vendas_v1
 let META_OUTROS = {}; // { NOME_VENDEDOR: { metaFat, metaPos, canal } }
+let CONSOLIDADO_DATAS = {}; // { VENDEDOR: 'DD/MM/YYYY HH:MM' } — última data de salvamento
+
+async function loadConsolidado() {
+  try {
+    const url = `${APPS_SCRIPT_URL}?sheet=CONSOLIDADO&t=${Date.now()}`;
+    const c = new AbortController(); setTimeout(() => c.abort(), 15000);
+    const r = await fetch(url, { redirect:'follow', signal: c.signal });
+    if (!r.ok) return;
+    const data = await r.json();
+    if (!data?.rows?.length) return;
+
+    const map = {}; // vendedor → { dateObj, dateStr }
+    const today = new Date();
+    const maxReasonable = new Date(today.getFullYear(), today.getMonth() + 2, 1); // máximo 2 meses no futuro
+
+    data.rows.forEach(row => {
+      const vendedor  = (row['VENDEDOR'] || '').trim().toUpperCase();
+      const dataEnvio = (row['DATA ENVIO'] || '').trim();
+      if (!vendedor || !dataEnvio) return;
+
+      let parsed = pDate(dataEnvio);
+      if (!parsed) return;
+
+      // Se a data parecer no futuro (> 2 meses), tenta inverter dia/mês
+      if (parsed > maxReasonable) {
+        const m = dataEnvio.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
+        if (m) {
+          const inverted = pDate(`${m[2]}/${m[1]}/${m[3]}${dataEnvio.slice(m[0].length)}`);
+          if (inverted && inverted <= maxReasonable) parsed = inverted;
+        }
+      }
+
+      if (!map[vendedor] || parsed > map[vendedor].dateObj) {
+        const pad = n => String(n).padStart(2,'0');
+        const str = `${pad(parsed.getDate())}/${pad(parsed.getMonth()+1)}/${parsed.getFullYear()} ${pad(parsed.getHours())}:${pad(parsed.getMinutes())}`;
+        map[vendedor] = { dateObj: parsed, dateStr: str };
+      }
+    });
+
+    CONSOLIDADO_DATAS = {};
+    Object.entries(map).forEach(([v, obj]) => { CONSOLIDADO_DATAS[v] = obj.dateStr; });
+    console.log(`✅ CONSOLIDADO: ${Object.keys(CONSOLIDADO_DATAS).length} vendedores`);
+  } catch(e) {
+    console.warn('❌ CONSOLIDADO falhou:', e.message);
+  }
+}
 
 async function loadMetaOutros() {
   try {
@@ -374,11 +422,19 @@ async function loadMetaOutros() {
 }
 
 let D_FROM = null, D_TO = null, CH = null;
-let _lastV1MaxDate = null;   // última data máxima da vendas_v1
-let _lastPmgMaxDate = null;  // última DATA ENVIO máxima das abas PMG
+let _lastV1MaxDate  = null;   // última data máxima da vendas_v1 (DATA_FAT)
+let _lastV1ExecDate = null;   // última DT_EXECUCAO da vendas_v1
+let _lastPmgMaxDate = null;   // última DATA ENVIO máxima das abas PMG
 
 function getV1MaxDate() {
   return VENDAS_V1.reduce((max, r) => r.date && r.date > max ? r.date : max, new Date(0));
+}
+
+function getV1MaxExecDate() {
+  return VENDAS_V1.reduce((max, r) => {
+    const d = r.execStr ? pDate(r.execStr) : null;
+    return d && d > max ? d : max;
+  }, new Date(0));
 }
 
 function getPmgMaxDate() {
@@ -394,16 +450,15 @@ let _alertFat = false;
 let _alertPmg = false;
 
 function showBell(label) {
-  // Mantém o botão geral de atualizar (compatibilidade)
-  document.getElementById('bell-label').textContent = label || '';
+  // Label fixo "PMG" — não sobrescreve
   document.getElementById('btn-bell').style.display = '';
-  // Ativa o alerta específico
   if (label === 'novo fat') { _alertFat = true; updateAlertBells(); }
   if (label === 'novo pmg') { _alertPmg = true; updateAlertBells(); }
 }
 
 function clearBell() {
   _lastV1MaxDate  = getV1MaxDate();
+  _lastV1ExecDate = getV1MaxExecDate();
   _lastPmgMaxDate = getPmgMaxDate();
   _alertFat = false;
   _alertPmg = false;
@@ -429,9 +484,18 @@ async function checkUpdates() {
     if (r1.ok) {
       const d1 = await r1.json();
       if (d1?.rows?.length) {
-        let newMax = new Date(0);
-        d1.rows.forEach(row => { const d = pDate(row['DATA_FAT']||''); if (d && d > newMax) newMax = d; });
-        if (_lastV1MaxDate && newMax > _lastV1MaxDate) { showBell('novo fat'); return; }
+        // Compara DT_EXECUCAO (mais confiável — muda quando a base é reprocessada)
+        let newExec = new Date(0);
+        let newFat  = new Date(0);
+        d1.rows.forEach(row => {
+          const dExec = pDate(row['DT_EXECUCAO'] || row['DT_EXEC'] || '');
+          if (dExec && dExec > newExec) newExec = dExec;
+          const dFat = pDate(row['DATA_FAT'] || '');
+          if (dFat && dFat > newFat) newFat = dFat;
+        });
+        const execChanged = _lastV1ExecDate && newExec.getTime() > 0 && newExec > _lastV1ExecDate;
+        const fatChanged  = _lastV1MaxDate  && newFat.getTime()  > 0 && newFat  > _lastV1MaxDate;
+        if (execChanged || fatChanged) { showBell('novo fat'); return; }
       }
     }
   } catch(e) {}
@@ -458,15 +522,16 @@ setInterval(checkUpdates, 3 * 60 * 1000);
 let _rows = [];
 
 const DEVELOPER_VENDORS = ['ALINE','CINTIA','KEULLY'];
-const getFarmerVendors  = () => C.sh.filter(v => !DEVELOPER_VENDORS.includes(v));
+const HAVA_PMG_VENDORS  = ['SAMARA']; // vendedores com aba PMG mas que pertencem ao canal HAVA
+const getFarmerVendors  = () => C.sh.filter(v => !DEVELOPER_VENDORS.includes(v) && !HAVA_PMG_VENDORS.includes(v));
 
 // ── Canais — vendedores da vendas_v1 que não têm aba PMG
 // Mapeados pelo NOME_VENDEDOR da vendas_v1
 const CHANNEL_DEFS = {
-  closer:  ['GIOVANA RENATA TABORDA','JULIA DE PAULA','KAROLINE DA SILVA JESUS','CASSIA APOLINARIO','JOÃO RACHID','VINICIUS QUEIROZ'],
+  closer:  ['GIOVANA RENATA TABORDA','JULIA DE PAULA','KAROLINE DA SILVA JESUS','CASSIA APOLINARIO','JOÃO RACHID','VINICIUS QUEIROZ','JOSE VINICIUS','VINICIUS SANTOS PEREIRA'],
   martins: ['MARTINS'],
-  ka:      ['RUBIA PAOLETTI'],
-  hava:    ['SAMARA FERNANDES','GIULLIANO MIOR'],
+  ka:      ['RUBIA PAOLETTI','GABRIELLA DIAS'],
+  hava:    ['SAMARA FERNANDES','GIULLIANO MIOR','HAVA'],
   // RCA: todos que iniciam com "RCA - "
 };
 const isRCA = (name) => (name||'').toUpperCase().startsWith('RCA');
@@ -479,7 +544,8 @@ const CHANNELS = ['closer','martins','rca','ka','hava'];
 const getGroupVendors = () => {
   if (GROUP === 'developer') return C.sh.filter(v => DEVELOPER_VENDORS.includes(v));
   if (GROUP === 'farmer')    return getFarmerVendors();
-  if (CHANNELS.includes(GROUP)) return []; // canais usam vendas_v1, não abas PMG
+  if (GROUP === 'hava')      return HAVA_PMG_VENDORS.filter(v => C.sh.includes(v)); // SAMARA tem aba PMG
+  if (CHANNELS.includes(GROUP)) return []; // outros canais usam vendas_v1, não abas PMG
   return C.sh;
 };
 
@@ -585,7 +651,8 @@ async function warmServerCache() {
 // Carrega aba vendas_v1 para Faturamento e Positivado MTD
 async function loadVendasV1() {
   try {
-    const url = `${APPS_SCRIPT_URL}?sheet=vendas_v1&t=${Date.now()}`;
+    // Usa action=vendas_v1 (compatível com o Apps Script original)
+    const url = `${APPS_SCRIPT_URL}?action=vendas_v1&t=${Date.now()}`;
     const ctrl = new AbortController();
     setTimeout(() => ctrl.abort(), 15000);
     const r = await fetch(url, { redirect: 'follow', signal: ctrl.signal });
@@ -593,24 +660,65 @@ async function loadVendasV1() {
     const txt = await r.text();
     let data;
     try { data = JSON.parse(txt); } catch(e) { console.warn('❌ vendas_v1: JSON inválido', e.message); return; }
-    console.log(`📦 vendas_v1: status="${data.status}" rows=${data.rows?.length} headers=${data.headers?.length} error="${data.error||''}"`);
-    if (!data || !data.rows || !data.headers) { console.warn('❌ vendas_v1: sem rows/headers'); return; }
+
+    if (!data || !data.rows || !data.rows.length) { console.warn('❌ vendas_v1: sem rows'); return; }
+
+    // Log dos campos disponíveis para diagnóstico
+    const availableKeys = Object.keys(data.rows[0] || {});
+    console.log(`📦 vendas_v1: ${data.rows.length} rows | campos: ${availableKeys.join(', ')}`);
+
+    // Detecta automaticamente os nomes das colunas (case-insensitive)
+    const findKey = (row, ...candidates) => {
+      const keys = Object.keys(row);
+      for (const c of candidates) {
+        const found = keys.find(k => k.trim().toUpperCase() === c.toUpperCase());
+        if (found) return found;
+      }
+      return null;
+    };
+    const sampleRow = data.rows[0];
+    const kNome  = findKey(sampleRow, 'NOME_VENDEDOR', 'VENDEDOR', 'NOME VENDEDOR');
+    const kFat   = findKey(sampleRow, 'FATURAMENTO', 'FAT', 'FAT. MÊS', 'FAT.MES', 'VALOR');
+    const kData  = findKey(sampleRow, 'DATA_FAT', 'DATA FAT', 'DATA', 'DATA ENVIO', 'DATA_FAT.');
+    const kCodCL = findKey(sampleRow, 'COD_CLIENTE_LOJA', 'COD CLIENTE LOJA', 'CODIGO_CLIENTE', 'COD_GC_LOJA');
+    const kCodGC = findKey(sampleRow, 'COD_GC', 'COD GC', 'CODIGO GC', 'GC');
+    const kCusto = findKey(sampleRow, 'CUSTO');
+    const kImp   = findKey(sampleRow, 'IMPOSTO');
+    console.log(`🔑 Mapeamento: nome=${kNome} fat=${kFat} data=${kData} codCL=${kCodCL} codGC=${kCodGC} custo=${kCusto} imposto=${kImp}`);
+
+    const kExec = findKey(sampleRow, 'DT_EXECUCAO', 'DT EXECUCAO', 'EXECUCAO', 'DT_EXEC');
+    const pNum  = s => parseFloat((s||'').replace(/[^\d,.-]/g,'').replace(',','.')) || 0;
 
     VENDAS_V1 = data.rows.map(row => {
-      const nomeVend = (row['NOME_VENDEDOR'] || '').trim().replace(/\s+/g,' ').toUpperCase();
+      const nomeVend = kNome ? (row[kNome] || '').trim().replace(/\s+/g,' ').toUpperCase() : '';
       const vendor   = VENDOR_MAP[nomeVend] || nomeVend;
-      const fatRaw   = (row['FATURAMENTO'] || '').replace(/[^\d,.-]/g,'').replace(',','.');
-      const fat      = parseFloat(fatRaw) || 0;
-      const dateStr  = row['DATA_FAT'] || '';
-      const codCL    = (row['COD_CLIENTE_LOJA'] || '').trim();
-      const codGC    = (row['COD_GC'] || '').trim();
+      const fat      = kFat  ? pNum(row[kFat])  : 0;
+      const custo    = kCusto? pNum(row[kCusto]) : 0;
+      const imposto  = kImp  ? pNum(row[kImp])   : 0;
+      const dateStr  = kData ? (row[kData] || '') : '';
+      const codCL    = kCodCL ? (row[kCodCL] || '').trim() : '';
+      const codGC    = kCodGC ? (row[kCodGC] || '').trim() : '';
       const date     = pDate(dateStr);
-      return { vendor, nomeVend, codClienteLoja: codCL, codGC, fat, date, dateStr };
-    }).filter(r => r.vendor && r.date);
+      const execStr  = kExec ? (row[kExec] || '').trim() : '';
+      return { vendor, nomeVend, codClienteLoja: codCL, codGC, fat, custo, imposto, date, dateStr, execStr };
+    }).filter(r => r.nomeVend && r.date);
 
-    console.log(`✅ vendas_v1: ${VENDAS_V1.length} linhas`);
+    console.log(`✅ vendas_v1: ${VENDAS_V1.length} linhas válidas`);
     _lastV1MaxDate  = getV1MaxDate();
+    _lastV1ExecDate = getV1MaxExecDate();
     _lastPmgMaxDate = getPmgMaxDate();
+    // Atualiza label "Venda atualizada até" — usa DT_EXECUCAO (data/hora da última execução)
+    const execMax = VENDAS_V1.reduce((max, r) => {
+      const d = pDate(r.execStr);
+      return d && d > max ? d : max;
+    }, new Date(0));
+    const dateForLabel = execMax.getTime() > 0 ? execMax : getV1MaxDate();
+    if (dateForLabel.getTime() > 0) {
+      const pad2 = n => String(n).padStart(2,'0');
+      const v1Str = `${pad2(dateForLabel.getDate())}/${pad2(dateForLabel.getMonth()+1)} ${pad2(dateForLabel.getHours())}:${pad2(dateForLabel.getMinutes())}`;
+      const el = document.getElementById('upd-v1');
+      if (el) { el.textContent = `Venda atualizada até ${v1Str}`; el.style.display = ''; }
+    }
   } catch(e) {
     console.warn('❌ vendas_v1 falhou:', e.message);
   }
@@ -676,7 +784,7 @@ function parseAppsScript(json, vendor) {
       dateRaw:   dateStr,
       date:      pDate(dateStr),
       value:     iVl   >= 0 ? num(get(row, headers[iVl]))     : 0,
-      meta:      iMeta >= 0 ? num(get(row, headers[iMeta]))   : 0,
+      meta:      iMeta >= 0 ? num(get(row, headers[iMeta])) : 0,
       metaPos:   iMetaPos >= 0 ? num(get(row, headers[iMetaPos])) : 0,
       positMes:  iPositMes >= 0 ? num(get(row, headers[iPositMes])) : 0,
       diasVenda: iDv >= 0 ? get(row, headers[iDv]) : '',
@@ -846,7 +954,7 @@ function parseGviz(resp, vendor) {
       dateRaw:    dateStr,
       date:       gDate(row, iDt),
       value:      gNum(row, iVl),
-      meta:       gNum(row, iMeta) * 1000,
+      meta:       Math.round(gNum(row, iMeta)) * 1000,
       metaPos:    gNum(row, iMetaPos),
       positMes:   gNum(row, iPositMes),
       diasVenda:  gStrFull(row, iDv),
@@ -860,29 +968,44 @@ function parseGviz(resp, vendor) {
 
 
 // ── pDate — parser de data com hora para dedup preciso ─
+// Retorna YYYY-MM-DD usando hora LOCAL (evita problema UTC-3 com toISOString)
+function localDK(d) {
+  if (!d) return '';
+  const pad = n => String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+}
+
 function pDate(s){
   if(!s) return null;
   s = String(s).trim();
-  // YYYYMMDD (ex: 20260407) — parse como hora local para evitar problema de timezone
+  // YYYYMMDD (ex: 20260407)
   if (/^\d{8}$/.test(s)) {
     const y = parseInt(s.slice(0,4));
     const mo = parseInt(s.slice(4,6)) - 1;
     const d = parseInt(s.slice(6,8));
     return new Date(y, mo, d);
   }
-  // DD/MM/YYYY HH:MM[:SS] ou D/M/YYYY HH:MM[:SS] — formato BR com ou sem zeros
-  let m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})(?:\s+(\d{1,2}):(\d{2})(?::\d{2})?)?/);
+  // YYYY-MM-DD ou YYYY/MM/DD (ISO) — força hora local para evitar problema de fuso (UTC-3)
+  let m = s.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})(?:[T\s](\d{1,2}):(\d{2})(?::\d{2})?)?/);
+  if(m) {
+    const hh = m[4] ? m[4].padStart(2,'0') : '00';
+    const mm5 = m[5] ? m[5].padStart(2,'0') : '00';
+    return new Date(`${m[1]}-${m[2].padStart(2,'0')}-${m[3].padStart(2,'0')}T${hh}:${mm5}:00`);
+  }
+  // DD/MM/YYYY HH:MM[:SS] — Apps Script sempre envia neste formato
+  // Assume SEMPRE que o primeiro campo é o DIA (formato BR)
+  // Só troca se o primeiro campo for claramente um mês (> 12 impossível como dia)
+  m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})(?:\s+(\d{1,2}):(\d{2})(?::\d{2})?)?/);
   if(m){
     const y   = m[3].length===2 ? '20'+m[3] : m[3];
     const hh  = m[4] ? m[4].padStart(2,'0') : '00';
     const mm5 = m[5] ? m[5].padStart(2,'0') : '00';
     let day = parseInt(m[1]), mon = parseInt(m[2]);
-    // Se mês > 12, está no formato MM/DD — troca
-    if (mon > 12) { const tmp = day; day = mon; mon = tmp; }
+    // Só troca se dia > 12 (impossível como dia, mas válido como mês) — formato MM/DD
+    if (day > 12 && mon <= 12) { const tmp = day; day = mon; mon = tmp; }
+    // Se ambos ≤ 12: assume DD/MM (formato BR — padrão do Apps Script)
     return new Date(`${y}-${String(mon).padStart(2,'0')}-${String(day).padStart(2,'0')}T${hh}:${mm5}:00`);
   }
-  m = s.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
-  if(m) return new Date(`${m[1]}-${m[2].padStart(2,'0')}-${m[3].padStart(2,'0')}`);
   return null;
 }
 function pMoney(s){
@@ -904,23 +1027,24 @@ async function loadData(){
   const allCandidates = C.sh;
   allCandidates.forEach(name => { DATA[name] = []; });
 
-  // Dispara as 3 fetches SIMULTANEAMENTE
+  // Dispara as 4 fetches SIMULTANEAMENTE
   const promiseV1   = loadVendasV1();
   const promiseMeta = loadMetaOutros();
   const promisePmg  = loadAllFromAppsScript();
+  const promiseCons = loadConsolidado();
 
   // Mostra banner de atualização imediatamente
   document.getElementById('updating-banner').style.display = 'block';
   document.getElementById('updating-overlay').style.display = 'block';
 
   // Fase 1: assim que vendas_v1 + META_OUTROS chegarem — renderiza parcial
-  await Promise.all([promiseV1, promiseMeta]);
+  await Promise.all([promiseV1, promiseMeta, promiseCons]);
   console.log(`⏱️ Fase 1: ${Date.now()-t0}ms | v1=${VENDAS_V1.length} meta=${Object.keys(META_OUTROS).length}`);
 
   btn.classList.remove('ld');
   const now0a = new Date();
   const pad0a = n => String(n).padStart(2,'0');
-  document.getElementById('upd').textContent = `Atualizado: ${pad0a(now0a.getDate())}/${pad0a(now0a.getMonth()+1)} ${pad0a(now0a.getHours())}:${pad0a(now0a.getMinutes())}`;
+  document.getElementById('upd').textContent = `Dados Atualizados em ${pad0a(now0a.getDate())}/${pad0a(now0a.getMonth()+1)} ${pad0a(now0a.getHours())}:${pad0a(now0a.getMinutes())}`;
   document.getElementById('dbar').style.display = 'flex';
   document.getElementById('gbar').style.display = 'flex';
   document.getElementById('vtabs-bar').style.display = 'block';
@@ -993,12 +1117,12 @@ function parseDays(str) {
 function getMaxDay(rows) {
   // Pega a data mais recente
   const maxDate = rows.reduce((max, r) => {
-    const d = r.date ? r.date.toISOString().slice(0,10) : '';
+    const d = r.date ? localDK(r.date) : '';
     return d > max ? d : max;
   }, '');
   if (!maxDate) return null;
   // Entre os registros com data mais recente, pega o maior dia de DIAS VENDA/CONTATO
-  const recentRows = rows.filter(r => r.date && r.date.toISOString().slice(0,10) === maxDate);
+  const recentRows = rows.filter(r => r.date && localDK(r.date) === maxDate);
   let maxDay = 0;
   recentRows.forEach(r => {
     const dvDays = parseDays(r.diasVenda);
@@ -1012,8 +1136,8 @@ function getMaxDay(rows) {
 function fltPeriodByDate(rows){
   if(PERIOD==='all') return rows;
   if(PERIOD==='hoje'){
-    const hoje = new Date().toISOString().slice(0,10);
-    return rows.filter(r => r.date && r.date.toISOString().slice(0,10) === hoje);
+    const hoje = localDK(new Date());
+    return rows.filter(r => r.date && localDK(r.date) === hoje);
   }
   if(PERIOD==='custom'){
     return rows.filter(r=>{
@@ -1030,16 +1154,16 @@ function fltPeriodByDate(rows){
   }
   // Últ. Dia e N dias — usa DATA ENVIO mais recente
   const maxDate = rows.reduce((max, r) => {
-    const d = r.date ? r.date.toISOString().slice(0,10) : '';
+    const d = r.date ? localDK(r.date) : '';
     return d > max ? d : max;
   }, '');
   if(PERIOD==='1'){
     const ontem = new Date();
     ontem.setDate(ontem.getDate() - 1);
-    const ontemStr = ontem.toISOString().slice(0,10);
+    const ontemStr = localDK(ontem);
     // Usa ontem se tiver dados, senão usa data mais recente
-    const target = rows.some(r => r.date && r.date.toISOString().slice(0,10) === ontemStr) ? ontemStr : maxDate;
-    return rows.filter(r => r.date && r.date.toISOString().slice(0,10) === target);
+    const target = rows.some(r => r.date && localDK(r.date) === ontemStr) ? ontemStr : maxDate;
+    return rows.filter(r => r.date && localDK(r.date) === target);
   }
   const cut = new Date(Date.now() - parseInt(PERIOD)*864e5);
   return rows.filter(r => r.date && r.date >= cut);
@@ -1128,6 +1252,48 @@ function status(r){
 }
 
 // Keep most recent row per (vendor+client)
+// Retorna meta do vendedor: soma o maior valor de META FAT por GC único do último dia
+// Calcula margem produtiva: 1 - ΣCusto / (ΣFaturamento - ΣImposto)
+function calcMargProd(rows) {
+  const fat    = rows.reduce((a,r) => a+(r.fat||0),    0);
+  const custo  = rows.reduce((a,r) => a+(r.custo||0),  0);
+  const imp    = rows.reduce((a,r) => a+(r.imposto||0),0);
+  const base   = fat - imp;
+  if (base <= 0) return null;
+  return (1 - custo / base) * 100;
+}
+
+function metaUltimoSalv(rows) {
+  if (!rows || !rows.length) return 0;
+  const vendor = rows[0] && rows[0].vendor;
+  // Tenta META_OUTROS primeiro — fonte confiável centralizada
+  if (vendor && META_OUTROS) {
+    const nomeCompleto = Object.entries(VENDOR_MAP).find(([,v]) => v === vendor)?.[0];
+    const metaEntry = (nomeCompleto && META_OUTROS[nomeCompleto]) || META_OUTROS[vendor];
+    if (metaEntry && metaEntry.metaFat > 0) return metaEntry.metaFat;
+  }
+  // Fallback: pega o valor de meta mais recente por GC, somando duplicatas do mesmo GC na mesma data
+  // Ordena por data decrescente, pega a data mais recente que tem meta, soma por GC nessa data
+  const maxDate = rows.reduce((max,r) => r.date && r.date > max ? r.date : max, new Date(0));
+  if (!maxDate.getTime()) return 0;
+  // Agrupa por GC usando o valor da linha mais recente de cada GC, somando duplicatas
+  const sorted = [...rows].sort((a,b) => (b.date?.getTime()||0) - (a.date?.getTime()||0));
+  const byGC = {}; // gc → { date, total }
+  sorted.forEach(r => {
+    const gc = r.client || '';
+    if (!gc) return;
+    const rDay = r.date ? localDK(r.date) : '';
+    if (!byGC[gc]) {
+      byGC[gc] = { day: rDay, total: r.meta || 0 };
+    } else if (rDay === byGC[gc].day) {
+      // Mesmo dia → soma (duplicatas intencionais como GC 168 do BRUNO)
+      byGC[gc].total += r.meta || 0;
+    }
+    // Dia anterior → ignora (byGC[gc].day já é mais recente)
+  });
+  return Object.values(byGC).reduce((a,v) => a + v.total, 0);
+}
+
 function dedup(rows){
   const m=new Map();
   for(const r of rows){
@@ -1252,14 +1418,14 @@ function _render(){
 
   const byD = {};
 
-  // Extrai o mês/ano da data mais recente dos dados para montar as datas completas
-  const refDate = evoRaw.reduce((max, r) => r.date && r.date > max ? r.date : max, new Date(0));
-  const refYear  = refDate.getFullYear();
-  const refMonth = refDate.getMonth(); // 0-based
+  // Usa o mês atual para montar as datas dos dias (DIAS VENDA/CONTATO são dias do mês corrente)
+  const now = new Date();
+  const refYear  = now.getFullYear();
+  const refMonth = now.getMonth(); // 0-based, mês atual
 
   const getDayKey = (day) => {
     const d = new Date(refYear, refMonth, parseInt(day));
-    return isNaN(d.getTime()) ? null : d.toISOString().slice(0,10);
+    return isNaN(d.getTime()) ? null : localDK(d);
   };
 
   evoRaw.forEach(r => {
@@ -1288,6 +1454,21 @@ function _render(){
     }
   });
 
+  // Helper: formata data como YYYY-MM-DD usando hora LOCAL (evita problema UTC-3)
+  // Complementa positivados com vendas_v1 (fonte confiável de faturamento real por data)
+  const hoje = localDK(new Date());
+  VENDAS_V1.filter(r => r.date && r.fat > 0).forEach(r => {
+    if (ACTIVE !== 'all' && r.vendor !== ACTIVE) return;
+    if (ACTIVE === 'all') {
+      if (CHANNELS.includes(GROUP)) { if (!getChannelVendors(GROUP).includes(r.nomeVend)) return; }
+      else if (GROUP === 'farmer')    { if (!getFarmerVendors().includes(r.vendor)) return; }
+      else if (GROUP === 'developer') { if (!DEVELOPER_VENDORS.includes(r.vendor)) return; }
+    }
+    const dayKey = localDK(r.date);
+    if (!byD[dayKey]) byD[dayKey] = { contato: new Set(), positivado: new Set() };
+    const key = 'v1::' + (r.codGC || r.codClienteLoja || '');
+    if (key !== 'v1::') byD[dayKey].positivado.add(key);
+  });
   // Converte Sets para contagens
   Object.values(byD).forEach(d => {
     d.contato    = d.contato.size;
@@ -1300,16 +1481,17 @@ function _render(){
   const _maxDayInfo = getMaxDay(dd);
   const vs = {};
   getGroupVendors().forEach(v => {
-    const vdAll  = dedup(getRaw(v));
+    const vdRaw  = getRaw(v); // dados brutos sem dedup — necessário para meta correta
+    const vdAll  = dedup(vdRaw);
     const vd     = fltPeriod(vdAll);
     const vdDate = fltPeriodByDate(vdAll);
     // Faturamento do período via vendas_v1
     const vFat = v1Period.filter(r => r.vendor === v).reduce((a,r) => a + (r.fat||0), 0);
-    // Meta FAT e Meta POSIT — usa mês mais recente disponível (pode ser mês anterior se ainda não há dados do mês atual)
+    // Meta FAT — usa dados brutos para preservar GCs duplicados com metas diferentes
     const maxVDate = vdAll.reduce((max,r) => r.date && r.date > max ? r.date : max, new Date(0));
     const bestMonth = maxVDate.getTime() > 0 ? new Date(maxVDate.getFullYear(), maxVDate.getMonth(), 1) : iniMes2;
+    const vMetaFat = metaUltimoSalv(vdRaw);
     const vRowsMeta = vdAll.filter(r => r.date && r.date >= bestMonth);
-    const vMetaFat = vRowsMeta.reduce((a,r) => a + (r.meta||0), 0);
     const vMetaPos = vRowsMeta.reduce((max,r) => Math.max(max, r.metaPos||0), 0);
     // Positivado MTD via vendas_v1
     const vPositSet = new Set(
@@ -1343,53 +1525,144 @@ function _render(){
     if (ACTIVE !== 'all' && r.vendor !== ACTIVE) return false;
     if (ACTIVE === 'all') {
       if (CHANNELS.includes(GROUP)) return getChannelVendors(GROUP).includes(r.nomeVend);
-      if (GROUP === 'all') return C.sh.includes(r.vendor) || allChannelNomesV1.includes(r.nomeVend);
-      return vendAtivos.includes(r.vendor);
+      if (GROUP === 'hava') return getChannelVendors('hava').includes(r.nomeVend) || HAVA_PMG_VENDORS.includes(r.vendor);
+      if (GROUP === 'farmer') return getFarmerVendors().includes(r.vendor);
+      if (GROUP === 'developer') return DEVELOPER_VENDORS.includes(r.vendor);
+      // GROUP === 'all': inclui TUDO do mês sem filtrar por canal
+      return true;
     }
     return true;
   });
 
   const totValMtd   = v1Filt.reduce((a,r) => a + (r.fat || 0), 0);
+  const margProdMtd = calcMargProd(v1Filt);
+  const margProdStr = margProdMtd !== null ? margProdMtd.toFixed(1) + '%' : '—';
   // Positivado MTD = contagem distinta de COD_CLIENTE_LOJA com FAT > 0
   const positSet    = new Set(v1Filt.filter(r => r.fat > 0).map(r => r.codClienteLoja));
   const sumPositMes = positSet.size;
 
   console.log(`📊 MTD: fat=${totValMtd.toFixed(0)} posit=${sumPositMes} linhas=${v1Filt.length}`);
 
-  // Meta FAT e Meta Posit: PMG vendors via abas, canais via META_OUTROS
+  // Meta FAT e Meta Posit: PMG vendors via abas + canais via META_OUTROS
   const vendorsAtivos = vendAtivos.filter(v => (DATA[v]||[]).length > 0);
   let totalMetaPos = 0;
   let totalMetaFat  = 0;
 
   if (CHANNELS.includes(GROUP)) {
-    // Para canais, pega meta do META_OUTROS
-    getChannelVendors(GROUP).forEach(nome => {
-      const m = META_OUTROS[nome] || {};
-      totalMetaFat += m.metaFat || 0;
-      totalMetaPos += m.metaPos || 0;
-    });
+    // Canal específico selecionado
+    if (GROUP === 'rca') {
+      Object.entries(META_OUTROS).forEach(([nome, m]) => {
+        if (isRCA(nome)) { totalMetaFat += m.metaFat||0; totalMetaPos += m.metaPos||0; }
+      });
+    } else {
+      getChannelVendors(GROUP).forEach(nome => {
+        const m = META_OUTROS[nome] || {};
+        totalMetaFat += m.metaFat || 0;
+        totalMetaPos += m.metaPos || 0;
+      });
+    }
+    // Se HAVA: inclui também meta das abas PMG (SAMARA)
+    if (GROUP === 'hava') {
+      HAVA_PMG_VENDORS.filter(v=>(DATA[v]||[]).length>0).forEach(v => {
+        totalMetaFat += metaUltimoSalv((DATA[v]||[]).map(r=>({...r,vendor:v})));
+      });
+    }
   } else {
+    // GROUP = all, farmer, developer — soma PMG vendors
     vendorsAtivos.forEach(v => {
-      const vAll = dedup(getRaw(v));
+      const vRaw = getRaw(v);
+      totalMetaFat += metaUltimoSalv(vRaw);
+      const vAll = dedup(vRaw);
       const vMaxDate = vAll.reduce((max,r) => r.date && r.date > max ? r.date : max, new Date(0));
       const vBestMonth = vMaxDate.getTime() > 0 ? new Date(vMaxDate.getFullYear(), vMaxDate.getMonth(), 1) : iniMes2;
       const vRowsMtd = vAll.filter(r => r.date && r.date >= vBestMonth);
       totalMetaPos += vRowsMtd.reduce((max,r) => Math.max(max, r.metaPos||0), 0);
-      totalMetaFat += vRowsMtd.reduce((a,r) => a + (r.meta||0), 0);
     });
+    // GROUP = all: também soma todos os canais do META_OUTROS
+    if (GROUP === 'all') {
+      ['closer','martins','ka','hava'].forEach(ch => {
+        getChannelVendors(ch).forEach(nome => {
+          const m = META_OUTROS[nome] || {};
+          totalMetaFat += m.metaFat || 0;
+          totalMetaPos += m.metaPos || 0;
+        });
+      });
+      // RCA
+      Object.entries(META_OUTROS).forEach(([nome, m]) => {
+        if (isRCA(nome)) { totalMetaFat += m.metaFat||0; totalMetaPos += m.metaPos||0; }
+      });
+    }
   }
   const pctPos  = totalMetaPos > 0 ? Math.round((sumPositMes / totalMetaPos) * 100) : null;
   const ating   = totalMetaFat > 0 ? Math.round((totValMtd   / totalMetaFat)  * 100) : null;
+
+  // Meta Faturamento — respeita filtro GROUP
+  // Determina quais grupos/canais incluir baseado no GROUP ativo
+  const CANAIS_META = ['closer','martins','hava','ka'];
+  let metaFatCanais = 0;
+  let fatCanaisMtd  = 0;
+
+  const shouldIncludeCanal = (ch) => GROUP === 'all' || GROUP === ch;
+  const shouldIncludePmg   = (v)  => GROUP === 'all' || GROUP === 'farmer' || GROUP === 'developer' ||
+                                     (GROUP === 'farmer'    && getFarmerVendors().includes(v)) ||
+                                     (GROUP === 'developer' && DEVELOPER_VENDORS.includes(v));
+  const pmgExtraForGroup = () => {
+    if (GROUP === 'farmer')    return getFarmerVendors();
+    if (GROUP === 'developer') return DEVELOPER_VENDORS;
+    if (GROUP === 'hava')      return HAVA_PMG_VENDORS;
+    if (GROUP === 'all') return [...new Set([...getFarmerVendors(), ...DEVELOPER_VENDORS, ...HAVA_PMG_VENDORS])];
+    return []; // canal específico sem PMG
+  };
+
+  const pmgExtraUniq = pmgExtraForGroup()
+    .filter(v => (DATA[v]||[]).length > 0)
+    .filter(v => ACTIVE === 'all' || ACTIVE === v); // respeita vendedor ativo
+
+  // Metas canais — só se ACTIVE é 'all' (canais não têm vendedor individual)
+  if (ACTIVE === 'all') {
+    CANAIS_META.filter(shouldIncludeCanal).forEach(ch => {
+      getChannelVendors(ch).forEach(nome => {
+        metaFatCanais += (META_OUTROS[nome]||{}).metaFat || 0;
+      });
+    });
+    // RCA
+    if (GROUP === 'all' || GROUP === 'rca') {
+      Object.entries(META_OUTROS).forEach(([nome, m]) => {
+        if (isRCA(nome)) metaFatCanais += m.metaFat || 0;
+      });
+    }
+  }
+  // FARMER + DEVELOPER + SAMARA das abas PMG (filtrado por vendedor ativo)
+  pmgExtraUniq.forEach(v => {
+    const vRaw = (DATA[v]||[]).map(r=>({...r,vendor:v}));
+    metaFatCanais += metaUltimoSalv(vRaw);
+  });
+
+  // Faturamento MTD (sempre MTD, sem filtro de período)
+  const allCanalNomesFat = ACTIVE === 'all' ? [
+    ...CANAIS_META.filter(shouldIncludeCanal).flatMap(ch => getChannelVendors(ch)),
+    ...(GROUP === 'all' || GROUP === 'rca' ? Object.keys(META_OUTROS).filter(isRCA) : []),
+  ] : [];
+  fatCanaisMtd = VENDAS_V1.filter(r => {
+    if (!r.date || r.date < iniMes2 || r.date > fimMes2) return false;
+    if (allCanalNomesFat.includes(r.nomeVend)) return true;
+    if (pmgExtraUniq.includes(r.vendor)) return true;
+    return false;
+  }).reduce((a,r) => a+(r.fat||0), 0);
+
+  const atingCanais = metaFatCanais > 0 ? Math.round((fatCanaisMtd / metaFatCanais) * 100) : null;
 
   // ── KPIs linha 1 — respeitam filtro de período
   const totValPeriod = v1Period.reduce((a,r) => a + (r.fat||0), 0);
 
   const kpisRow1 = [
-    {ico:'💰', lbl:'Faturamento',  sub:'Período',          val:fBRL(totValPeriod), kc:'var(--blue2)', bellId:'kpi-bell-fat'},
-    {ico:'💼', lbl:'Carteira',     sub:'Grupos Comerciais', val:cntCar,             kc:'var(--g-car)'},
-    {ico:'📞', lbl:'Contato',      sub:'Grupos Comerciais', val:cntCon,             kc:'var(--blue)',  bellId:'kpi-bell-pmg'},
-    {ico:'🛒', lbl:'Venda',        sub:'Grupos Comerciais', val:cntVen,             kc:'var(--g-pos)'},
-    {ico:'❌', lbl:'Não Venda',    sub:'Grupos Comerciais', val:cntNav,             kc:'var(--red)'},
+    {ico:'💰', lbl:'Faturamento',      sub:'Período',          val:fBRL(totValPeriod), kc:'var(--blue2)', bellId:'kpi-bell-fat'},
+    {ico:'🎯', lbl:'Meta Faturamento', sub:'', val:fBRL(metaFatCanais), kc:'var(--blue)', ating: atingCanais},
+    {ico:'📊', lbl:'Marg. Prod.', sub:'Período (Fat-Imp-Custo)', val:margProdStr, kc:'#1a8c4e'},
+    {ico:'💼', lbl:'Carteira',         sub:'Grupos Comerciais', val:cntCar,             kc:'var(--g-car)'},
+    {ico:'📞', lbl:'Contato',          sub:'Grupos Comerciais', val:cntCon,             kc:'var(--blue)',  bellId:'kpi-bell-pmg'},
+    {ico:'🛒', lbl:'Venda',            sub:'Grupos Comerciais', val:cntVen,             kc:'var(--g-pos)'},
+    {ico:'❌', lbl:'Não Venda',        sub:'Grupos Comerciais', val:cntNav,             kc:'var(--red)'},
   ];
   // ── KPIs linha MTD — sempre acumulado do mês
   const kpisRow2 = [
@@ -1403,7 +1676,8 @@ function _render(){
       <div class="kpi-ico">${k.ico}</div>
       <div class="kpi-lbl" style="display:flex;align-items:center;gap:6px">
         ${k.lbl}
-        ${k.bellId ? `<span id="${k.bellId}" onclick="saveSettAndLoad()" title="Há dados novos — clique para atualizar" style="display:none;align-items:center;gap:4px;background:#ff6b35;color:#fff;font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;cursor:pointer;animation:bellPulse 1.5s ease-in-out infinite;white-space:nowrap">🔔 Atualizar</span>` : ''}
+        ${k.bellId === 'kpi-bell-fat' ? `<span id="${k.bellId}" onclick="saveSettAndLoad()" title="Faturamento atualizado — clique para atualizar" style="display:none;align-items:center;gap:4px;background:#1a3a8c;color:#fff;font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;cursor:pointer;animation:bellPulse 1.5s ease-in-out infinite;white-space:nowrap">🔔 Faturamento</span>` : ''}
+        ${k.bellId === 'kpi-bell-pmg' ? `<span id="${k.bellId}" onclick="saveSettAndLoad()" title="Novo salvamento no PMG — clique para atualizar" style="display:none;align-items:center;gap:4px;background:#1a3a8c;color:#fff;font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;cursor:pointer;animation:bellPulse 1.5s ease-in-out infinite;white-space:nowrap">🔔 PMG</span>` : ''}
       </div>
       <div class="kpi-val${k.lg?' lg':k.sm?' sm':''}">${k.val}</div>
       ${k.sub ? `<div style="font-size:10px;color:var(--text3);margin-top:2px">${k.sub}</div>` : ''}
@@ -1422,37 +1696,49 @@ function _render(){
   if (mtdBar) {
     mtdBar.style.display = 'block';
 
-    // Calcula fat+posit MTD para um conjunto de nomeVend ou vendors PMG
+    // Calcula fat+posit MTD para um conjunto de nomeVend ou vendors PMG (ou ambos)
     const calcMtd = (pmgVendors, channelNomes) => {
       const rows = VENDAS_V1.filter(r => {
         if (!r.date || r.date < iniMes2 || r.date > fimMes2) return false;
-        if (channelNomes) return channelNomes.includes(r.nomeVend);
-        return pmgVendors.includes(r.vendor);
+        if (channelNomes && channelNomes.includes(r.nomeVend)) return true;
+        if (pmgVendors && pmgVendors.length && pmgVendors.includes(r.vendor)) return true;
+        return false;
       });
       const fat   = rows.reduce((a,r) => a+(r.fat||0), 0);
       const posit = new Set(rows.filter(r=>r.fat>0).map(r=>r.codClienteLoja)).size;
-      return { fat, posit };
+      const marg  = calcMargProd(rows);
+      return { fat, posit, marg };
     };
 
     // Metas por grupo
-    const getMeta = (pmgVendors, channelNomes) => {
+    const getMeta = (pmgVendors, channelNomes, grpKey) => {
       let mFat=0, mPos=0;
-      if (channelNomes) {
-        channelNomes.forEach(n => { const m=META_OUTROS[n]||{}; mFat+=m.metaFat||0; mPos+=m.metaPos||0; });
-      } else {
+      // Canais via META_OUTROS
+      if (channelNomes !== null) {
+        if (grpKey === 'rca') {
+          Object.entries(META_OUTROS).forEach(([nome, m]) => {
+            if (isRCA(nome)) { mFat+=m.metaFat||0; mPos+=m.metaPos||0; }
+          });
+        } else {
+          channelNomes.forEach(n => { const m=META_OUTROS[n]||{}; mFat+=m.metaFat||0; mPos+=m.metaPos||0; });
+        }
+      }
+      // PMG vendors (pode coexistir com canais, ex: HAVA tem SAMARA com aba PMG)
+      if (pmgVendors && pmgVendors.length) {
         pmgVendors.filter(v=>(DATA[v]||[]).length>0).forEach(v => {
-          const vAll=dedup((DATA[v]||[]).map(r=>({...r,vendor:v})));
+          const vRaw=(DATA[v]||[]).map(r=>({...r,vendor:v}));
+          const vAll=dedup(vRaw);
+          mFat+=metaUltimoSalv(vRaw);
           const vMax=vAll.reduce((mx,r)=>r.date&&r.date>mx?r.date:mx,new Date(0));
           const vBest=vMax.getTime()>0?new Date(vMax.getFullYear(),vMax.getMonth(),1):iniMes2;
           const vMtd=vAll.filter(r=>r.date&&r.date>=vBest);
-          mFat+=vMtd.reduce((a,r)=>a+(r.meta||0),0);
           mPos+=vMtd.reduce((mx,r)=>Math.max(mx,r.metaPos||0),0);
         });
       }
       return { mFat, mPos };
     };
 
-    const miniCard = (lbl, val, meta, type, grp, isAvacy) => {
+    const miniCard = (lbl, val, meta, type, grp, isAvacy, pmgHava, marg) => {
       const pct = meta>0 ? Math.round((val/meta)*100) : null;
       const col = pct==null?'#888':pct>=100?'#1a8c4e':pct>=70?'#b87a00':'#cc1a1a';
       const valStr = type==='fat' ? fBRL(val) : val.toString();
@@ -1482,24 +1768,46 @@ function _render(){
         textC='var(--text)'; labelC='var(--text3)'; metaC='var(--text3)';
         pctC = pct==null?'var(--text3)':pct>=100?'#1a8c4e':pct>=70?'#b87a00':'#cc1a1a';
         const barCol = pct==null?'#888':pct>=100?'#1a8c4e':pct>=70?'#b87a00':'#cc1a1a';
-        return `<div onclick="setGroup('${grp}')" style="width:364px;flex-shrink:0;background:${bg};border:2px solid ${border};border-top:4px solid ${type==='fat'?'#1a3a8c':'#1a8c4e'};border-radius:12px;padding:10px 26px;cursor:pointer;transition:all .2s;display:flex;flex-direction:column;justify-content:center;text-align:left;box-shadow:0 4px 16px rgba(26,58,140,.10);position:relative;overflow:hidden">
-          <img src="${AVACY_LOGO}" style="position:absolute;top:8px;right:12px;height:28px;opacity:.18;pointer-events:none;filter:grayscale(30%)" alt="">
-          <div style="font-size:13px;font-weight:700;color:${labelC};text-transform:uppercase;letter-spacing:.8px;margin-bottom:9px">${lbl}</div>
-          <div style="font-size:26px;font-weight:800;color:${textC};font-family:'Montserrat',sans-serif;line-height:1.1">${valStr}</div>
-          ${metaStr?`<div style="font-size:12px;color:${metaC};margin-top:6px;font-family:'Montserrat',sans-serif">Meta: ${metaStr}</div>`:''}
-          ${pct!=null?`
-            <div style="margin-top:15px">
-              <div style="height:4px;background:var(--gray);border-radius:3px;overflow:hidden">
-                <div style="height:100%;width:${Math.min(pct,100)}%;background:${barCol};border-radius:3px;transition:width .8s"></div>
-              </div>
-              <div style="font-size:13px;font-weight:800;color:${pctC};margin-top:6px;font-family:'Montserrat',sans-serif">${pct}% da meta</div>
-            </div>`:''
-          }
+        const pmgHavaPct = pmgHava && pmgHava.meta > 0 ? Math.round((pmgHava.posit / pmgHava.meta) * 100) : null;
+        const pmgHavaPctC = pmgHavaPct==null?'var(--text3)':pmgHavaPct>=100?'#1a8c4e':pmgHavaPct>=70?'#b87a00':'#cc1a1a';
+        const pmgHavaBarCol = pmgHavaPct==null?'#888':pmgHavaPct>=100?'#1a8c4e':pmgHavaPct>=70?'#b87a00':'#cc1a1a';
+        const subLbl = `<span style="font-size:6.5px;font-weight:600;letter-spacing:.5px">(FARMER, DEVELOPER, CLOSER, HAVA)</span>`;
+        const rightBlock = pmgHava ? `
+          <div style="border-left:1.5px solid var(--gray2);padding-left:16px;display:flex;flex-direction:column;justify-content:center;min-width:0;flex:1">
+            <div style="font-size:13px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:9px;line-height:1.4">AVACY<br>${subLbl}</div>
+            <div style="font-size:26px;font-weight:800;color:var(--text);font-family:'Montserrat',sans-serif;line-height:1.1">${pmgHava.posit}</div>
+            ${pmgHavaPct!=null?`
+              <div style="margin-top:15px">
+                <div style="height:4px;background:var(--gray);border-radius:3px;overflow:hidden">
+                  <div style="height:100%;width:${Math.min(pmgHavaPct,100)}%;background:${pmgHavaBarCol};border-radius:3px;transition:width .8s"></div>
+                </div>
+                <div style="font-size:13px;font-weight:800;color:${pmgHavaPctC};margin-top:6px;font-family:'Montserrat',sans-serif">${pmgHavaPct}% da meta</div>
+              </div>`:''
+            }
+          </div>` : '';
+        return `<div onclick="setGroup('${grp}')" style="width:364px;flex-shrink:0;background:${bg};border:2px solid ${border};border-top:4px solid ${type==='fat'?'#1a3a8c':'#1a8c4e'};border-radius:12px;padding:10px 26px;cursor:pointer;transition:all .2s;display:flex;flex-direction:row;align-items:stretch;gap:16px;text-align:left;box-shadow:0 4px 16px rgba(26,58,140,.10)">
+          <div style="display:flex;flex-direction:column;justify-content:center;min-width:0;flex:1">
+            <div style="font-size:13px;font-weight:700;color:${labelC};text-transform:uppercase;letter-spacing:.8px;margin-bottom:9px">${lbl}</div>
+            <div style="font-size:26px;font-weight:800;color:${textC};font-family:'Montserrat',sans-serif;line-height:1.1">${valStr}</div>
+              ${type==='fat'&&marg!=null?`<div style="font-size:12px;color:var(--text3);margin-top:3px;font-family:'Montserrat',sans-serif">Marg. Prod.: <span style="font-weight:800;color:var(--text2)">${marg.toFixed(1)}%</span></div>`:''}
+            
+            ${(!pmgHava && metaStr)?`<div style="font-size:12px;color:${metaC};margin-top:6px;font-family:'Montserrat',sans-serif">Meta: ${metaStr}</div>`:''}
+            ${(!pmgHava && pct!=null)?`
+              <div style="margin-top:15px">
+                <div style="height:4px;background:var(--gray);border-radius:3px;overflow:hidden">
+                  <div style="height:100%;width:${Math.min(pct,100)}%;background:${barCol};border-radius:3px;transition:width .8s"></div>
+                </div>
+                <div style="font-size:13px;font-weight:800;color:${pctC};margin-top:6px;font-family:'Montserrat',sans-serif">${pct}% da meta</div>
+              </div>`:''
+            }
+          </div>
+          ${rightBlock}
         </div>`;
       }
       return `<div onclick="setGroup('${grp}')" style="width:240px;flex-shrink:0;background:${bg};border:2px solid ${border};border-radius:10px;border-top:4px solid ${type==='fat'?'#1a3a8c':'#1a8c4e'};padding:8px 14px;cursor:pointer;transition:all .2s;text-align:left;box-shadow:${isActive?'0 2px 8px rgba(26,58,140,.15)':'none'}">
         <div style="font-size:11px;font-weight:700;color:${labelC};text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px">${lbl}</div>
         <div style="font-size:20px;font-weight:800;color:${textC};font-family:'Montserrat',sans-serif;line-height:1.1">${valStr}</div>
+        ${type==='fat' && marg!=null?`<div style="font-size:11px;color:var(--text3);margin-top:2px;font-family:'Montserrat',sans-serif">Marg. Prod.: <span style="font-weight:800;color:var(--text2)">${marg.toFixed(1)}%</span></div>`:''}
         ${metaStr?`<div style="font-size:11px;color:${metaC};margin-top:2px;font-family:'Montserrat',sans-serif">Meta: ${metaStr}</div>`:''}
         ${pct!=null?`
           <div style="margin-top:5px">
@@ -1521,15 +1829,25 @@ function _render(){
     };
     const calcAvacyMeta = (type) => {
       let m=0;
-      getFarmerVendors().concat(DEVELOPER_VENDORS).filter(v=>(DATA[v]||[]).length>0).forEach(v=>{
-        const vAll=dedup((DATA[v]||[]).map(r=>({...r,vendor:v})));
-        const vMax=vAll.reduce((mx,r)=>r.date&&r.date>mx?r.date:mx,new Date(0));
-        const vBest=vMax.getTime()>0?new Date(vMax.getFullYear(),vMax.getMonth(),1):iniMes2;
-        const vMtd=vAll.filter(r=>r.date&&r.date>=vBest);
-        if(type==='fat') m+=vMtd.reduce((a,r)=>a+(r.meta||0),0);
-        else m+=vMtd.reduce((mx,r)=>Math.max(mx,r.metaPos||0),0);
+      getFarmerVendors().concat(DEVELOPER_VENDORS).concat(HAVA_PMG_VENDORS).filter(v=>(DATA[v]||[]).length>0).forEach(v=>{
+        const vRaw=(DATA[v]||[]).map(r=>({...r,vendor:v}));
+        const vAll=dedup(vRaw);
+        if(type==='fat') m+=metaUltimoSalv(vRaw);
+        else {
+          const vMax=vAll.reduce((mx,r)=>r.date&&r.date>mx?r.date:mx,new Date(0));
+          const vBest=vMax.getTime()>0?new Date(vMax.getFullYear(),vMax.getMonth(),1):iniMes2;
+          m+=vAll.filter(r=>r.date&&r.date>=vBest).reduce((mx,r)=>Math.max(mx,r.metaPos||0),0);
+        }
       });
-      allChannelNomesV1.forEach(n=>{const mt=META_OUTROS[n]||{};if(type==='fat')m+=mt.metaFat||0;else m+=mt.metaPos||0;});
+      // Canais não-RCA via allChannelNomesV1 (closer, martins, ka, hava)
+      allChannelNomesV1.filter(n => !isRCA(n)).forEach(n=>{
+        const mt=META_OUTROS[n]||{};
+        if(type==='fat') m+=mt.metaFat||0; else m+=mt.metaPos||0;
+      });
+      // RCA: soma TODAS as entradas de META_OUTROS que começam com "RCA"
+      Object.entries(META_OUTROS).forEach(([nome, mt]) => {
+        if (isRCA(nome)) { if(type==='fat') m+=mt.metaFat||0; else m+=mt.metaPos||0; }
+      });
       return m;
     };
 
@@ -1540,7 +1858,7 @@ function _render(){
       { lbl:'MARTINS',   pmg: null,                  ch: getChannelVendors('martins'),grp:'martins'   },
       { lbl:'RCA',       pmg: null,                  ch: getChannelVendors('rca'),    grp:'rca'       },
       { lbl:'KA',        pmg: null,                  ch: getChannelVendors('ka'),     grp:'ka'        },
-      { lbl:'HAVA',      pmg: null,                  ch: getChannelVendors('hava'),   grp:'hava'      },
+      { lbl:'HAVA',      pmg: HAVA_PMG_VENDORS,          ch: getChannelVendors('hava'),   grp:'hava'      },
     ];
 
     const fatRow = document.getElementById('mtd-fat-row');
@@ -1554,17 +1872,24 @@ function _render(){
       const lvl1 = subGroups.filter(g => ['farmer','developer','closer'].includes(g.grp));
       const lvl2 = subGroups.filter(g => ['martins','rca','ka','hava'].includes(g.grp));
 
+      // Positivação e meta FARMER+DEVELOPER+CLOSER+HAVA (para bloco direito do card AVACY de posit)
+      const pmgHavaGroups = subGroups.filter(g => ['farmer','developer','closer','hava'].includes(g.grp));
+      const pmgHavaPos  = pmgHavaGroups.reduce((a,g) => a + calcMtd(g.pmg||[],g.ch).posit, 0);
+      const pmgHavaMPos = pmgHavaGroups.reduce((a,g) => a + getMeta(g.pmg||[],g.ch,g.grp).mPos, 0);
+
       const buildRow = (type, avacyVal, avacyMeta) => {
-        const avacyCard = miniCard('AVACY', avacyVal, avacyMeta, type, 'all', true);
+        // Calcular margem AVACY MTD
+        const avacyMarg = type==='fat' ? calcMargProd(VENDAS_V1.filter(r=>r.date&&r.date>=iniMes2&&r.date<=fimMes2)) : null;
+        const avacyCard = miniCard('AVACY', avacyVal, avacyMeta, type, 'all', true, type==='pos' ? { posit: pmgHavaPos, meta: pmgHavaMPos } : null, avacyMarg);
         const row1Cards = lvl1.map(g => {
-          const {fat,posit} = calcMtd(g.pmg||[],g.ch);
-          const {mFat,mPos} = getMeta(g.pmg||[],g.ch);
-          return miniCard(g.lbl, type==='fat'?fat:posit, type==='fat'?mFat:mPos, type, g.grp, false);
+          const {fat,posit,marg} = calcMtd(g.pmg||[],g.ch);
+          const {mFat,mPos} = getMeta(g.pmg||[],g.ch,g.grp);
+          return miniCard(g.lbl, type==='fat'?fat:posit, type==='fat'?mFat:mPos, type, g.grp, false, null, type==='fat'?marg:null);
         }).join('');
         const row2Cards = lvl2.map(g => {
-          const {fat,posit} = calcMtd(g.pmg||[],g.ch);
-          const {mFat,mPos} = getMeta(g.pmg||[],g.ch);
-          return miniCard(g.lbl, type==='fat'?fat:posit, type==='fat'?mFat:mPos, type, g.grp, false);
+          const {fat,posit,marg} = calcMtd(g.pmg||[],g.ch);
+          const {mFat,mPos} = getMeta(g.pmg||[],g.ch,g.grp);
+          return miniCard(g.lbl, type==='fat'?fat:posit, type==='fat'?mFat:mPos, type, g.grp, false, null, type==='fat'?marg:null);
         }).join('');
         return `${avacyCard}
           <div style="flex:1;display:flex;flex-direction:column;gap:8px;min-width:0">
@@ -1579,7 +1904,7 @@ function _render(){
   }
 
   mc.innerHTML += `
-    <div class="kpi-g" style="grid-template-columns:repeat(5,1fr);margin-bottom:22px">
+    <div class="kpi-g" style="grid-template-columns:repeat(7,1fr);margin-bottom:22px">
       ${kpisRow1.map(kpiHtml).join('')}
     </div>`;
 
@@ -1626,6 +1951,9 @@ function _render(){
         const atPosStr = s.atPos!=null
           ? `<span style="color:${s.atPos>=100?'#1a8c4e':s.atPos>=70?'#b87a00':'#cc1a1a'};font-weight:700">${s.atPos}%</span> posit`
           : '';
+        // Último salvamento — usa aba CONSOLIDADO (fonte confiável, formato garantido DD/MM/YYYY HH:MM)
+        const lastSaveStr = CONSOLIDADO_DATAS[v] || '—';
+
         return `<div class="vnd" data-vendor="${v}" onclick="swV('${v}')" style="transition:all .25s;border-left:4px solid ${borderCol};${dimStyle}">
           <div class="vnd-h">
             <div class="vnd-av">${ini}</div>
@@ -1639,6 +1967,10 @@ function _render(){
             <div class="mini-v" style="color:${st.col}">${s[st.key]||0}</div>
             <div class="mini-l">${st.lbl}</div>
           </div>`).join('')}</div>
+          <div style="margin-top:8px;padding-top:7px;border-top:1px solid var(--gray);display:flex;align-items:center;gap:5px">
+            <span style="font-size:9px;color:var(--text3)">🕐</span>
+            <span style="font-size:9px;color:var(--text3);font-family:'Roboto Mono',monospace;letter-spacing:.2px">Últ. salvamento: <b style="color:var(--text2)">${lastSaveStr}</b></span>
+          </div>
         </div>`;}).join('')}</div>`;
     }
   }
@@ -1736,6 +2068,30 @@ function _render(){
   </div>`;
 
   // ── Fat por canal para o gráfico de barras
+  // fatCanais usa VENDAS_V1 do mês inteiro filtrado apenas por período (não por GROUP/canal)
+  // para evitar contaminação quando um canal específico está selecionado
+  const v1ForCanais = VENDAS_V1.filter(r => {
+    if (!r.date) return false;
+    if (PERIOD === 'all') return true;
+    if (PERIOD === 'hoje') {
+      const hoje = localDK(now2);
+      return localDK(r.date) === hoje;
+    }
+    if (PERIOD === 'custom') {
+      if (D_FROM && r.date < D_FROM) return false;
+      if (D_TO   && r.date > D_TO)   return false;
+      return true;
+    }
+    if (PERIOD === '1') {
+      const ontem = new Date(now2.getFullYear(), now2.getMonth(), now2.getDate()-1);
+      return r.date >= ontem && r.date < new Date(now2.getFullYear(), now2.getMonth(), now2.getDate());
+    }
+    if (!isNaN(parseInt(PERIOD))) {
+      const cut = new Date(now2.getFullYear(), now2.getMonth(), now2.getDate() - parseInt(PERIOD) + 1);
+      return r.date >= cut;
+    }
+    return true;
+  });
   const allSubGroups = [
     { lbl:'FARMER',    pmg: getFarmerVendors(),   ch: null },
     { lbl:'DEVELOPER', pmg: DEVELOPER_VENDORS,    ch: null },
@@ -1743,10 +2099,10 @@ function _render(){
     { lbl:'MARTINS',   pmg: null, ch: getChannelVendors('martins') },
     { lbl:'RCA',       pmg: null, ch: getChannelVendors('rca')     },
     { lbl:'KA',        pmg: null, ch: getChannelVendors('ka')      },
-    { lbl:'HAVA',      pmg: null, ch: getChannelVendors('hava')    },
+    { lbl:'HAVA',      pmg: HAVA_PMG_VENDORS, ch: getChannelVendors('hava')    },
   ];
   const fatCanais = allSubGroups.map(g => {
-    const rows = v1Period.filter(r => {
+    const rows = v1ForCanais.filter(r => {
       if (g.ch) return g.ch.includes(r.nomeVend);
       return (g.pmg||[]).includes(r.vendor);
     });
@@ -2047,7 +2403,13 @@ function drawTbl(rows, noUpdate, periodMap){
       ${showV?`<td style="font-weight:700;color:var(--blue)">${r.vendor}</td>`:''}
       <td>${bdg}</td>
       <td style="font-family:'Roboto Mono',monospace;color:${fatVal>0?'#1a8c4e':'var(--text2)'};font-weight:${fatVal>0?700:400}">${fatVal>0?fBRL(fatVal):'—'}</td>
-      <td style="font-family:'Roboto Mono',monospace;color:var(--text3)">${r.dateRaw||'—'}</td>
+      <td style="font-family:'Roboto Mono',monospace;color:var(--text3)">${(() => {
+        if (!r.dateRaw) return '—';
+        const d = r.date || pDate(r.dateRaw);
+        if (!d) return r.dateRaw;
+        const pad = n => String(n).padStart(2,'0');
+        return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+      })()}</td>
       <td>${car==='sim' ? `<span class="badge" style="background:#fff3cd;color:#b87a00">SIM</span>` : `<span style="color:var(--text3)">—</span>`}</td>
       <td style="font-family:'Roboto Mono',monospace">${r.contato||'—'}</td>
       <td style="font-family:'Roboto Mono',monospace;color:#1a8c4e">${r.diasVenda||'—'}</td>
