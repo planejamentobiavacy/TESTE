@@ -192,11 +192,17 @@ CHANNELS.forEach(ch => {
 });
 
 // ─── CLOCK ─────────────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {
+// Garante execução independente do estado do DOM
+function initApp() {
   setInterval(updateClock, 1000);
   loadData();
   setInterval(loadData, 3 * 60 * 1000);
-});
+}
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initApp);
+} else {
+  initApp();
+}
 function updateClock() {
   document.getElementById('dataHora').textContent =
     new Date().toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',
@@ -283,7 +289,8 @@ async function loadData() {
 
   } catch(e) {
     console.error(e);
-    showErr('❌ ' + e.message);
+    showErr('❌ Erro: ' + e.message + '\n\nStack: ' + (e.stack||''));
+    document.getElementById('app').style.display = '';
   } finally {
     setLoading(false);
   }
