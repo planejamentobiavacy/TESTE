@@ -419,8 +419,7 @@ function render(vendasRows, vendMap, metaPorVend, hoje) {
   const buckets = {};
   CHANNELS.forEach(ch => { buckets[ch.id] = {}; });
 
-  // Log para debug: conta quantos nomes não casam com vendMap
-  let _nomesNaoMapeados = new Set();
+  const _nomesNaoMapeados = new Set();
 
   vendasRows.forEach(r => {
     const nome  = (r[COL_VEND] || '').toUpperCase().trim().replace(/\s+/g,' ');
