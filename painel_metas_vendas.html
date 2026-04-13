@@ -314,7 +314,7 @@ async function loadData() {
 function buildVendMap(rows) {
   const map = {};
   rows.forEach(r => {
-    const nome  = colVal(r, VC_NOME).toUpperCase().trim();
+    const nome  = colVal(r, VC_NOME).toUpperCase().trim().replace(/\s+/g,' ');
     const canal = colVal(r, VC_CANAL).toUpperCase().trim();
     const aba   = colVal(r, VC_ABA).trim();
     if (nome) map[nome] = { canal, aba };
@@ -418,7 +418,7 @@ function render(vendasRows, vendMap, metaPorVend, hoje) {
   CHANNELS.forEach(ch => { buckets[ch.id] = {}; });
 
   vendasRows.forEach(r => {
-    const nome  = (r[COL_VEND] || '').toUpperCase().trim();
+    const nome  = (r[COL_VEND] || '').toUpperCase().trim().replace(/\s+/g,' ');
     const info  = vendMap[nome];
     const canal = info?.canal || (r['CANAL'] || '').toUpperCase().trim();
     if (!buckets[canal]) return;
