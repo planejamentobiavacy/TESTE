@@ -2236,24 +2236,25 @@ function renderTable() {
 
   html += `</tbody></table></div>`;
 
-  // Pagination
+  area.innerHTML = html;
+
+  // Paginação e botão adicionar — fora do table-scroll, dentro do clients-card
+  let footerHtml = '';
   if (totalPages > 1) {
-    html += `<div class="table-footer">
+    footerHtml += `<div class="table-footer">
       <span class="page-info">Página ${currentPage} de ${totalPages} · ${filteredRows.length} registros</span>
       <div class="page-btns">
         <button class="page-btn" id="btnPrev" ${currentPage===1?'disabled':''}>‹</button>`;
     pageRange(currentPage, totalPages).forEach(p => {
-      html += p==='...'
+      footerHtml += p==='...'
         ? `<button class="page-btn" disabled>…</button>`
         : `<button class="page-btn ${p===currentPage?'active':''}" data-pg="${p}">${p}</button>`;
     });
-    html += `<button class="page-btn" id="btnNext" ${currentPage===totalPages?'disabled':''}>›</button>
+    footerHtml += `<button class="page-btn" id="btnNext" ${currentPage===totalPages?'disabled':''}>›</button>
       </div></div>`;
   }
-
-  // Botão adicionar novo cliente
-  html += `
-    <div style="padding:16px 20px;border-top:1px solid #eef0f8;">
+  footerHtml += `
+    <div style="padding:12px 20px;border-top:1px solid #eef0f8;">
       <button id="btnAddClient"
         style="display:inline-flex;align-items:center;gap:8px;
                background:linear-gradient(135deg,#2251c5,#0f2670);
@@ -2267,7 +2268,14 @@ function renderTable() {
       </button>
     </div>`;
 
-  area.innerHTML = html;
+  let footerEl = document.getElementById('__tableFooterEl__');
+  if (!footerEl) {
+    footerEl = document.createElement('div');
+    footerEl.id = '__tableFooterEl__';
+    footerEl.style.flexShrink = '0';
+    area.parentNode.appendChild(footerEl);
+  }
+  footerEl.innerHTML = footerHtml;
 
   // Bind search
   const si = document.getElementById('tblSearch');
