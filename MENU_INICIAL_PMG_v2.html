@@ -2290,6 +2290,22 @@ function renderTable() {
     tableScroll.style.maxHeight = Math.max(available, 200) + 'px';
   });
 
+  // Listener de clique na paginação e botão adicionar
+  footerEl.onclick = function(e) {
+    const pgBtn  = e.target.closest('.page-btn[data-pg]');
+    if (pgBtn && !pgBtn.disabled) { currentPage = +pgBtn.dataset.pg; renderTable(); return; }
+    const prevBtn = e.target.closest('#btnPrev');
+    if (prevBtn && !prevBtn.disabled && currentPage > 1) { currentPage--; renderTable(); return; }
+    const nextBtn = e.target.closest('#btnNext');
+    if (nextBtn && !nextBtn.disabled) {
+      const tp = Math.ceil(filteredRows.length / PAGE_SIZE);
+      if (currentPage < tp) { currentPage++; renderTable(); }
+      return;
+    }
+    const addBtn = e.target.closest('#btnAddClient');
+    if (addBtn) { addNewClient(); return; }
+  };
+
   // Bind search
   const si = document.getElementById('tblSearch');
   if (si) {
