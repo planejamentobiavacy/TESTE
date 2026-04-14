@@ -127,7 +127,7 @@
   #logoutBtn:hover { background:var(--red-light) !important; border-color:var(--red-light) !important; color:var(--white) !important; }
   .dash-header-wave { display:none; }
   .dash-body { flex:1; padding:16px 16px 8px; width:100%; display:flex; flex-direction:column; overflow:hidden; min-height:0; }
-  .clients-card { background:var(--white); border-radius:16px; overflow:hidden; box-shadow:0 4px 20px var(--shadow); flex:1; display:flex; flex-direction:column; min-height:0; }
+  .clients-card { background:var(--white); border-radius:16px; overflow:visible; box-shadow:0 4px 20px var(--shadow); flex:1; display:flex; flex-direction:column; min-height:0; }
   .table-scroll { overflow-x:auto; overflow-y:auto; flex:1; min-height:0; width:100%; }
 
   /* welcome */
@@ -1829,8 +1829,10 @@ function _updateTheadTop() {
   requestAnimationFrame(() => {
     const tableScroll = document.querySelector('.table-scroll');
     if (!tableScroll) return;
+    const footerEl = document.getElementById('__tableFooterEl__');
+    const footerH = footerEl ? footerEl.offsetHeight : 0;
     const rect = tableScroll.getBoundingClientRect();
-    const available = window.innerHeight - rect.top - 8; // 8px margem inferior
+    const available = window.innerHeight - rect.top - footerH - 8;
     tableScroll.style.height = Math.max(available, 200) + 'px';
     tableScroll.style.maxHeight = Math.max(available, 200) + 'px';
   });
@@ -2276,6 +2278,17 @@ function renderTable() {
     area.parentNode.appendChild(footerEl);
   }
   footerEl.innerHTML = footerHtml;
+
+  // Recalcula altura da tabela agora que o footer está no DOM
+  requestAnimationFrame(() => {
+    const tableScroll = document.querySelector('.table-scroll');
+    if (!tableScroll) return;
+    const fh = footerEl.offsetHeight || 0;
+    const rect = tableScroll.getBoundingClientRect();
+    const available = window.innerHeight - rect.top - fh - 8;
+    tableScroll.style.height = Math.max(available, 200) + 'px';
+    tableScroll.style.maxHeight = Math.max(available, 200) + 'px';
+  });
 
   // Bind search
   const si = document.getElementById('tblSearch');
