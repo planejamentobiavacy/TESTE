@@ -524,7 +524,7 @@ function gauge(id,pct,color){
   ctx.strokeStyle='#e0e0e0'; ctx.lineWidth=22; ctx.lineCap='round'; ctx.stroke();
 
   // Tick at 50%
-  var tx=cx+r*Math.cos(-Math.PI/2), ty=cy+r*Math.sin(-Math.PI/2);
+  var tx=cx+r*Math.cos(-Math.PI/2); var ty=cy+r*Math.sin(-Math.PI/2);
   ctx.beginPath(); ctx.moveTo(tx,ty+10); ctx.lineTo(tx,ty-6);
   ctx.strokeStyle='#bbb'; ctx.lineWidth=2; ctx.lineCap='butt'; ctx.stroke();
 
@@ -549,7 +549,7 @@ function toNum(v){
   return parseFloat(s)||0;
 }
 function todayISO(){var d=new Date();return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
-function pad(n){return String(n).padStart(2,'0');}
+function pad(n){var s=String(n);return s.length>=2?s:'0'+s;}
 function fmtPct(n){if(n===null||n===undefined||!isFinite(n))return'—';return n.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'%';}
 function pctCls(p){if(p===null||p===undefined)return'pct-none';return p>=85?'pct-g':p>=50?'pct-w':'pct-b';}
 function tc(s){return s.toLowerCase().replace(/\b\w/g,function(c){return c.toUpperCase();});}
