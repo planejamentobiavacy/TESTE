@@ -186,6 +186,17 @@ tbody td{padding:8px 14px;font-size:20px;vertical-align:middle;color:#1a1a2e}
 </div>
 
 <script>
+// Polyfills para Samsung Smart TV (browser antigo)
+if(!Object.keys){Object.keys=function(o){var k=[];for(var p in o){if(Object.prototype.hasOwnProperty.call(o,p))k.push(p);}return k;};}
+if(!String.prototype.trim){String.prototype.trim=function(){return this.replace(/^\s+|\s+$/g,'');};}
+if(!String.prototype.startsWith){String.prototype.startsWith=function(s){return this.indexOf(s)===0;};}
+if(!Array.prototype.indexOf){Array.prototype.indexOf=function(v){for(var i=0;i<this.length;i++){if(this[i]===v)return i;}return -1;};}
+if(!Array.isArray){Array.isArray=function(v){return Object.prototype.toString.call(v)==='[object Array]'};}
+if(!Array.prototype.forEach){Array.prototype.forEach=function(fn){for(var i=0;i<this.length;i++)fn(this[i],i,this);};}
+if(!Array.prototype.map){Array.prototype.map=function(fn){var r=[];for(var i=0;i<this.length;i++)r.push(fn(this[i],i,this));return r;};}
+if(!Array.prototype.filter){Array.prototype.filter=function(fn){var r=[];for(var i=0;i<this.length;i++){if(fn(this[i],i,this))r.push(this[i]);}return r;};}
+if(!Array.prototype.reduce){Array.prototype.reduce=function(fn,init){var acc=init,i=0;if(arguments.length<2){acc=this[0];i=1;}for(;i<this.length;i++)acc=fn(acc,this[i],i,this);return acc;};}
+
 var APPS_URL = 'https://script.google.com/macros/s/AKfycbzPtcFKRGVIWHurmjMdGrthLLKMcDQuq5HVJxQm_fO9pinzgqXCUXsVKTbznAfPFv0C/exec';
 
 var CH_TOP = { FARMER:10, DEVELOPER:999, CLOSER:3 };
@@ -432,7 +443,7 @@ function render(vendasRows,vendMap,metaPorVend){
     if(!buckets[canal][nome]) buckets[canal][nome]={fatMTD:0,positMTD:0,positDia:0};
     var fat=toNum(r['FATURAMENTO']);
     var posit=toNum(r['PEDIDOS'])||(fat>0?1:0);
-    var isDia=String(r['DATA_FAT']||'').trim().startsWith(hoje);
+    var isDia=String(r['DATA_FAT']||'').trim().indexOf(hoje)===0;
     buckets[canal][nome].fatMTD+=fat;
     buckets[canal][nome].positMTD+=posit;
     if(isDia) buckets[canal][nome].positDia+=posit;
