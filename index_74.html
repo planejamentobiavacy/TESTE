@@ -2006,19 +2006,16 @@ function _render(){
     if (key) _vendorCanalMap[key] = m.canal;
   });
 
-  // Debug 1ª linha
+  // Debug v1Filt
   if (VENDAS_V1.length > 0) {
-    const s = VENDAS_V1[0];
-    console.log('🔍 v1Filt debug - 1ª linha:', JSON.stringify({
-      vendor: s.vendor, nomeVend: s.nomeVend, date: s.date, fat: s.fat,
-      iniMes2: iniMes2, fimMes2: fimMes2,
-      dateInRange: s.date && s.date >= iniMes2 && s.date <= fimMes2,
-      ACTIVE: ACTIVE, GROUP: GROUP
-    }));
-    if (GROUP === 'all' || GROUP === 'farmer') {
-      console.log('🔍 _vendorCanalMap sample:', Object.keys(_vendorCanalMap).slice(0,5).map(k=>k+'='+_vendorCanalMap[k]).join(', '));
-      console.log('🔍 1ª linha canal:', _vendorCanalMap[s.vendor], 'vendor='+s.vendor);
-    }
+    var _s = VENDAS_V1[0];
+    var _dateInRange = _s.date && _s.date >= iniMes2 && _s.date <= fimMes2;
+    console.log('DEBUG v1Filt 1a linha: vendor=', _s.vendor, ' nomeVend=', _s.nomeVend, ' fat=', _s.fat);
+    console.log('DEBUG v1Filt date=', _s.date, ' iniMes2=', iniMes2, ' fimMes2=', fimMes2, ' inRange=', _dateInRange);
+    console.log('DEBUG v1Filt ACTIVE=', ACTIVE, ' GROUP=', GROUP);
+    console.log('DEBUG _vendorCanalMap keys count=', Object.keys(_vendorCanalMap).length);
+    console.log('DEBUG _vendorCanalMap[vendor]=', _vendorCanalMap[_s.vendor]);
+    console.log('DEBUG META_OUTROS[vendor]=', META_OUTROS[_s.vendor]);
   }
   const v1Filt = VENDAS_V1.filter(r => {
     if (!r.date || r.date < iniMes2 || r.date > fimMes2) return false;
