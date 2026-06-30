@@ -1691,7 +1691,8 @@ function _render(){
   // ── Datas MTD e v1Period — declarados aqui para uso em cntVen e vendor stats
   const now2    = new Date();
   const iniMes2 = new Date(now2.getFullYear(), now2.getMonth(), 1);
-  const fimMes2 = new Date(now2.getFullYear(), now2.getMonth()+1, 0);
+  // Último dia do mês às 23:59:59 — inclui vendas do último dia
+  const fimMes2 = new Date(now2.getFullYear(), now2.getMonth()+1, 0, 23, 59, 59, 999);
   const vendAtivos = ACTIVE === 'all' ? getGroupVendors() : [ACTIVE];
   const allChannelNomesV1 = CHANNELS.flatMap(ch => getChannelVendors(ch));
 
@@ -2006,17 +2007,6 @@ function _render(){
     if (key) _vendorCanalMap[key] = m.canal;
   });
 
-  // Debug v1Filt
-  if (VENDAS_V1.length > 0) {
-    var _s = VENDAS_V1[0];
-    var _dateInRange = _s.date && _s.date >= iniMes2 && _s.date <= fimMes2;
-    console.log('DEBUG v1Filt 1a linha: vendor=', _s.vendor, ' nomeVend=', _s.nomeVend, ' fat=', _s.fat);
-    console.log('DEBUG v1Filt date=', _s.date, ' iniMes2=', iniMes2, ' fimMes2=', fimMes2, ' inRange=', _dateInRange);
-    console.log('DEBUG v1Filt ACTIVE=', ACTIVE, ' GROUP=', GROUP);
-    console.log('DEBUG _vendorCanalMap keys count=', Object.keys(_vendorCanalMap).length);
-    console.log('DEBUG _vendorCanalMap[vendor]=', _vendorCanalMap[_s.vendor]);
-    console.log('DEBUG META_OUTROS[vendor]=', META_OUTROS[_s.vendor]);
-  }
   const v1Filt = VENDAS_V1.filter(r => {
     if (!r.date || r.date < iniMes2 || r.date > fimMes2) return false;
     if (ACTIVE !== 'all' && r.vendor !== ACTIVE) return false;
